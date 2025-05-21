@@ -1,24 +1,22 @@
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import { BrowserRouter } from 'react-router-dom'
-import App from './App'
-import 'bootstrap/dist/css/bootstrap.min.css'
-import { Auth0Provider } from "@auth0/auth0-react";
+import React from 'react';
+import ReactDOM from 'react-dom/client'; 
+import App from './App';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import { Auth0Provider } from '@auth0/auth0-react';
 
-const domain = "dev-whrxbulkwlxu1gbp.us.auth0.com";
-const clientId = "1FdAzLne2nVELULFDsefBTtt8P67nKz1";
+const domain = import.meta.env.VITE_AUTH0_DOMAIN;
+const clientId = import.meta.env.VITE_AUTH0_CLIENT_ID;
 
-ReactDOM.createRoot(document.getElementById("root")).render(
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(
   <Auth0Provider
-    domain={"dev-whrxbulkwlxu1gbp.us.auth0.com"}
-    clientId={"1FdAzLne2nVELULFDsefBTtt8P67nKz1"}
+    domain={domain}
+    clientId={clientId}
     authorizationParams={{
       redirect_uri: window.location.origin,
     }}
   >
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
+    <App />
   </Auth0Provider>
 );
-

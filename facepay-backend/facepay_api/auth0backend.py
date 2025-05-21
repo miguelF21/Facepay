@@ -3,6 +3,8 @@ import requests
 from django.conf import settings
 import jwt
 from rest_framework import authentication, exceptions
+import jwt
+
 
 class Auth0JSONWebTokenAuthentication(authentication.BaseAuthentication):
     def authenticate(self, request):
@@ -47,5 +49,7 @@ class Auth0JSONWebTokenAuthentication(authentication.BaseAuthentication):
                 raise exceptions.AuthenticationFailed('Invalid token')
 
             return (payload, token)
+        
+        
 
         raise exceptions.AuthenticationFailed('Unable to find appropriate key')

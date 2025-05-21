@@ -1,4 +1,5 @@
 import jwt, requests
+from jwt import InvalidAlgorithmError, ExpiredSignatureError, InvalidAudienceError, PyJWTError
 from django.conf import settings
 from rest_framework import authentication, exceptions
 
@@ -13,7 +14,7 @@ class Auth0JSONWebTokenAuthentication(authentication.BaseAuthentication):
         token = parts[1]
 
         # JWKS
-        jwks_url = f'https://{settings.AUTH0_DOMAIN}/.well-known/jwks.json'
+        jwks_url = f"https://{settings.AUTH0_DOMAIN}/.well-known/jwks.json"
         jwks = requests.get(jwks_url).json()
         unverified_header = jwt.get_unverified_header(token)
         rsa_key = {}
@@ -31,11 +32,15 @@ class Auth0JSONWebTokenAuthentication(authentication.BaseAuthentication):
                 audience=settings.AUTH0_AUDIENCE,
                 issuer=f'https://{settings.AUTH0_DOMAIN}/'
             )
-        except jwt.ExpiredSignatureError:
+
+        except InvalidAlgorithmError:
+            raise exceptions.AuthenticationFailed('Token firmado con un algoritmo no soportado')
+        except ExpiredSignatureError:
             raise exceptions.AuthenticationFailed('Token expirado')
-        except jwt.JWTClaimsError:
-            raise exceptions.AuthenticationFailed('Claims inválidos')
-        except Exception:
-            raise exceptions.AuthenticationFailed('Decodificación fallida')
+        except InvalidAudienceError:
+            raise exceptions.AuthenticationFailed('Audience inválido en el token')
+        except PyJWTError:
+            raise exceptions.AuthenticationFailed('Token inválido')
+
 
         return (payload, token)
