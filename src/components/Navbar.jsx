@@ -21,6 +21,7 @@ export default function Navbar() {
                 </>
               ) : (
                 <>
+                  <Nav.Link as={Link} to="/dashboard">Dashboard</Nav.Link>
                   <Nav.Link as={Link} to="/employees">Employees</Nav.Link>
                   <Nav.Link as={Link} to="/attendance">Attendance</Nav.Link>
                   <Nav.Link as={Link} to="/payroll">Payroll</Nav.Link>

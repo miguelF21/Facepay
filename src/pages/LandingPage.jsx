@@ -1,23 +1,45 @@
-import React from 'react';
-import { useAuth0 } from '@auth0/auth0-react';
-import { Button } from 'react-bootstrap';
+import React from "react";
+import { useAuth0 } from "@auth0/auth0-react";
+import { useNavigate } from "react-router-dom";
 
 export default function LandingPage() {
-  const { isAuthenticated, loginWithRedirect, isLoading } = useAuth0();
-
-  if (isLoading) return <div>Loading...</div>;
+  const { loginWithRedirect, logout, isAuthenticated, isLoading, user } = useAuth0();
+  const navigate = useNavigate();
 
   return (
-    <div className="text-center mt-5">
-      <h1 className="display-4">Welcome to Facepay</h1>
-      <p className="lead">Facial Recognition Based Attendance Control System</p>
-      {!isAuthenticated ? (
-        <>
-          <Button variant="primary" size="lg" className="me-2" onClick={() => loginWithRedirect()}>Sign In</Button>
-          <Button variant="success" size="lg" onClick={() => loginWithRedirect({ screen_hint: 'signup' })}>Sign Up</Button>
-        </>
-      ) : (
-        <div className="alert alert-info mt-4">Welcome back!</div>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-white dark:bg-gray-900 text-gray-800 dark:text-white px-4">
+      <h1 className="text-4xl font-bold mb-2 text-center">Welcome to Facepay</h1>
+      <p className="text-lg mb-8 text-center">Facial Recognition Based Attendance Control System</p>
+
+      {!isLoading && (
+        <div className="flex flex-col gap-4 items-center">
+          {isAuthenticated ? (
+            <>
+              <div className="bg-blue-100 text-blue-700 px-6 py-3 rounded-full font-semibold">Welcome back, {user.name}!</div>
+              <div className="flex gap-4 mt-4">
+                <button
+                  onClick={() => navigate("/dashboard")}
+                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                >
+                  Go to Dashboard
+                </button>
+                <button
+                  onClick={() => logout({ returnTo: window.location.origin })}
+                  className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
+                >
+                  Logout
+                </button>
+              </div>
+            </>
+          ) : (
+            <button
+              onClick={() => loginWithRedirect()}
+              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+            >
+              Login
+            </button>
+          )}
+        </div>
       )}
     </div>
   );
