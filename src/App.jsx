@@ -9,6 +9,8 @@ import Attendance from './pages/Attendance';
 import Payroll from './pages/Payroll';
 import Reports from './pages/Reports';
 import { ThemeProvider } from "@/components/theme-provider";
+import './index.css';
+
 
 function App() {
   return (

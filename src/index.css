@@ -1,8 +1,7 @@
 @import "tailwindcss";
 @import "tailwindcss/preflight";
-
-@custom-variant dark (&:is(.dark *));
 @tailwind utilities;
+
 
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
@@ -10,14 +9,9 @@
   font-weight: 400;
 
   color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
   --radius: 0.625rem;
+
+  /* Light Mode Colors */
   --background: oklch(1 0 0);
   --foreground: oklch(0.129 0.042 264.695);
   --card: oklch(1 0 0);
@@ -36,11 +30,15 @@
   --border: oklch(0.929 0.013 255.508);
   --input: oklch(0.929 0.013 255.508);
   --ring: oklch(0.704 0.04 256.788);
+
+  /* Chart colors */
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
+
+  /* Sidebar colors */
   --sidebar: oklch(0.984 0.003 247.858);
   --sidebar-foreground: oklch(0.129 0.042 264.695);
   --sidebar-primary: oklch(0.208 0.042 265.755);
@@ -51,98 +49,7 @@
   --sidebar-ring: oklch(0.704 0.04 256.788);
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
-
-body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
-}
-
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
-
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
-}
-
-@theme inline {
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
-}
-
+/* Dark Mode */
 .dark {
   --background: oklch(0.129 0.042 264.695);
   --foreground: oklch(0.984 0.003 247.858);
@@ -162,11 +69,15 @@ button:focus-visible {
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.551 0.027 264.364);
+
+  /* Chart colors dark mode */
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
+
+  /* Sidebar colors dark mode */
   --sidebar: oklch(0.208 0.042 265.755);
   --sidebar-foreground: oklch(0.984 0.003 247.858);
   --sidebar-primary: oklch(0.488 0.243 264.376);
@@ -177,11 +88,280 @@ button:focus-visible {
   --sidebar-ring: oklch(0.551 0.027 264.364);
 }
 
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background-color: var(--background);
+  color: var(--foreground);
+  overflow-x: hidden;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Dark mode toggle styles */
+.dark-mode-toggle {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  background: var(--card);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--border);
+}
+
+.dark-mode-toggle:hover {
+  transform: scale(1.05);
+}
+
+/* Ensure all elements inherit color scheme */
+*, *::before, *::after {
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    border-color: var(--border);
+    outline-color: var(--ring);
   }
-  body {
-    @apply bg-background text-foreground;
+}
+
+/* Custom scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: var(--muted);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--secondary-foreground);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--primary);
+}
+
+/* Firefox scrollbar */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--secondary-foreground) var(--muted);
+}
+
+/* EXTRA UTILITY CLASSES FOR LANDING PAGE */
+
+/* Extremely small logo size */
+.logo-tiny {
+  height: 200px !important;
+  max-height: 200px !important;
+  width: auto !important;
+}
+
+/* Extra small text sizes */
+.text-xxs {
+  font-size: 0.9 rem !important;
+  line-height: 1 rem !important;
+}
+
+.text-xxxs {
+  font-size: 0.55 rem !important;
+  line-height: 0.75rem !important;
+}
+
+/* Small icons */
+.small-icon {
+  width: 14px !important;
+  height: 14px !important;
+}
+
+/* Compact spacing utility */
+.compact-spacing > * + * {
+  margin-top: 0.25rem !important;
+}
+
+/* Compact cards */
+.compact-card {
+  padding: 0.5rem !important;
+}
+
+.compact-card .text-content {
+  padding: 0.25rem 0 !important;
+}
+
+/* Animation utilities */
+.animate-pulse-slow {
+  animation: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse-slow {
+  0%, 100% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+.rotate-hover:hover {
+  transform: rotate(6deg);
+  transition: transform 0.3s ease;
+}
+
+/* Enhanced bounce animation */
+@keyframes enhanced-bounce {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-8px);
+  }
+  60% {
+    transform: translateY(-4px);
+  }
+}
+
+.enhanced-bounce {
+  animation: enhanced-bounce 1.5s ease infinite;
+}
+
+/* Smooth transitions */
+.smooth-transition {
+  transition: all 0.3s ease-out;
+}
+
+/* Gradient backgrounds */
+.gradient-blue-purple {
+  background: linear-gradient(to right, var(--primary), var(--chart-2));
+}
+
+/* RESPONSIVE UTILITIES */
+@media (max-width: 640px) {
+  .mobile-compact {
+    padding: 0.75rem !important;
+  }
+  
+  .mobile-text-sm {
+    font-size: 0.7rem !important;
+  }
+  
+  .mobile-hidden {
+    display: none !important;
+  }
+}
+
+/* ADJUSTMENTS FOR LANDING PAGE */
+/* Move content significantly to the right */
+.landing-content {
+  margin-left: 50px !important;
+  padding-right: 30px !important;
+}
+
+@media (min-width: 768px) {
+  .landing-content {
+    margin-left: 100px !important;
+    padding-right: 60px !important;
+  }
+}
+
+/* Position login card lower and more to the right */
+.auth-section {
+  margin-top: 40px !important;
+  margin-left: 30px !important;
+}
+
+@media (min-width: 768px) {
+  .auth-section {
+    margin-top: 60px !important;
+    margin-left: 60px !important;
+  }
+}
+
+/* Card specific adjustments - moved more to the right */
+.auth-card {
+  transform: translateX(40px) !important;
+  margin-bottom: 30px !important;
+}
+
+@media (min-width: 768px) {
+  .auth-card {
+    transform: translateX(80px) !important;
+  }
+}
+
+/* Header adjustments */
+.header-content {
+  margin-left: 30px !important;
+}
+
+@media (min-width: 768px) {
+  .header-content {
+    margin-left: 60px !important;
+  }
+}
+
+/* Button animations */
+.auth-button {
+  animation-delay: 0.5s !important;
+}
+
+/* Dark mode specific adjustments */
+.dark .auth-card {
+  background-color: var(--card) !important;
+  color: var(--card-foreground) !important;
+  border-color: var(--border) !important;
+}
+
+.dark .landing-content,
+.dark .header-content {
+  color: var(--foreground) !important;
+}
+
+/* Ensure text colors adapt to dark mode */
+.dark .text-gray-900 {
+  color: var(--foreground) !important;
+}
+
+.dark .text-gray-600 {
+  color: var(--muted-foreground) !important;
+}
+
+.dark .text-blue-600 {
+  color: var(--primary) !important;
+}
+
+/* Background adjustments for dark mode */
+.dark .bg-white {
+  background-color: var(--card) !important;
+}
+
+.dark .bg-blue-100 {
+  background-color: oklch(0.2 0.05 260) !important;
+}
+
+.dark .bg-green-100 {
+  background-color: oklch(0.2 0.05 140) !important;
+}
+
+.dark .bg-purple-100 {
+  background-color: oklch(0.2 0.05 300) !important;
+}
+
+/* Footer adjustments */
+.footer-content {
+  margin-left: 30px !important;
+}
+
+@media (min-width: 768px) {
+  .footer-content {
+    margin-left: 60px !important;
   }
 }
