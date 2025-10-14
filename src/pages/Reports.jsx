@@ -76,7 +76,7 @@ function Reports() {
       const imgHeight = canvas.height;
       const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
       const imgX = (pdfWidth - imgWidth * ratio) / 2;
-      const imgY = 10;
+      const imgY = 6;
       
       pdf.addImage(imgData, 'PNG', imgX, imgY, imgWidth * ratio, imgHeight * ratio);
       pdf.save(`attendance_payroll_report_${startDate}_to_${endDate}.pdf`);

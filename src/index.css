@@ -89,7 +89,7 @@
 }
 
 body {
-  margin: 0;
+  
   min-width: 320px;
   min-height: 100vh;
   background-color: var(--background);
@@ -161,9 +161,11 @@ body {
 
 /* Extremely small logo size */
 .logo-tiny {
+  margin-top: 30px;
   height: 200px !important;
   max-height: 200px !important;
   width: auto !important;
+  
 }
 
 /* Extra small text sizes */
@@ -258,11 +260,22 @@ body {
   }
 }
 
+
+.landing-main-container {
+  margin-left: 100px; 
+}
+.landing-main-container .grid {
+
+  margin-top: 20px;
+}
+
 /* ADJUSTMENTS FOR LANDING PAGE */
-/* Move content significantly to the right */
+
 .landing-content {
-  margin-left: 50px !important;
-  padding-right: 30px !important;
+  transform: translateY(40px) !important;
+  margin-left: 70% !important;
+  padding-right: 10px !important;
+  
 }
 
 @media (min-width: 768px) {
@@ -272,28 +285,36 @@ body {
   }
 }
 
-/* Position login card lower and more to the right */
+/* Position login card lower */
 .auth-section {
-  margin-top: 40px !important;
+  margin-top: 170px !important;
   margin-left: 30px !important;
+  
+  
 }
 
 @media (min-width: 768px) {
   .auth-section {
     margin-top: 60px !important;
     margin-left: 60px !important;
+    padding-top: 10px;
   }
 }
 
-/* Card specific adjustments - moved more to the right */
+/* Card specific adjustments  */
 .auth-card {
-  transform: translateX(40px) !important;
+  
   margin-bottom: 30px !important;
+  margin-top: 20px !important;
+  
+  
 }
 
 @media (min-width: 768px) {
   .auth-card {
-    transform: translateX(80px) !important;
+    margin-top: 20px !important;
+    margin-left: 10px !important; /* mueve un poco hacia la izquierda */
+    
   }
 }
 
@@ -365,3 +386,4 @@ body {
     margin-left: 60px !important;
   }
 }
+
