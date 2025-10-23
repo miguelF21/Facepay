@@ -67,8 +67,8 @@ DATABASES = {
     }
 }
 
-SUPABASE_URL = os.getenv('VITE_SUPABASE_URL', '')
-SUPABASE_KEY = os.getenv('VITE_SUPABASE_ANON_KEY', '')
+SUPABASE_URL = os.getenv('VITE_SUPABASE_URL', 'https://zypyviskemdvvqnjnnui.supabase.co')
+SUPABASE_KEY = os.getenv('VITE_SUPABASE_ANON_KEY', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp5cHl2aXNrZW1kdnZxbmpubnVpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjEyMjM5MTcsImV4cCI6MjA3Njc5OTkxN30.S9jUQsW_jMwYJd1zxXbLJEYZfvnxdDLMMVgLHQT1WpA')
 
 AUTH_PASSWORD_VALIDATORS = [
     {
