@@ -10,3 +10,6 @@ def get_supabase_client() -> Client:
         raise ValueError("Supabase URL and Key must be configured in settings")
 
     return create_client(supabase_url, supabase_key)
+
+
+
