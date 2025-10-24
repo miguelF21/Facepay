@@ -73,7 +73,7 @@ export default function SidebarLayout() {
     { to: "/dashboard", label: "Dashboard", icon: Home, color: "from-blue-500 to-cyan-500" },
     { to: "/attendance", label: "Attendance", icon: Clock, color: "from-emerald-500 to-teal-500" },
     { to: "/payroll", label: "Payroll", icon: DollarSign, color: "from-amber-500 to-orange-500" },
-    { to: "/employees", label: "Employees", icon: Users, color: "from-purple-500 to-indigo-500" },
+    { to: "/employees", label: "Employees", icon: Users, color: "from-blue-500 to-sky-500" },
     { to: "/reports", label: "Reports", icon: FileText, color: "from-rose-500 to-pink-500" },
   ] : [];
 
@@ -117,8 +117,8 @@ export default function SidebarLayout() {
         ${collapsed ? 'shadow-none' : 'shadow-2xl lg:shadow-xl'}
       `}>
         {/* Header del Sidebar */}
-        <div className="relative p-6 border-b border-slate-200/50 dark:border-slate-700/50 bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 dark:from-blue-700 dark:via-purple-700 dark:to-blue-900">
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-purple-500 opacity-0 group-hover:opacity-20 transition-opacity duration-500"></div>
+        <div className="relative p-6 border-b border-slate-200/50 dark:border-slate-700/50 bg-gradient-to-r from-blue-600 via-cyan-600 to-blue-800 dark:from-blue-700 dark:via-cyan-700 dark:to-blue-900">
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-cyan-500 opacity-0 group-hover:opacity-20 transition-opacity duration-500"></div>
           <div className="relative flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
@@ -150,7 +150,7 @@ export default function SidebarLayout() {
                     className="w-16 h-16 rounded-2xl object-cover shadow-lg ring-4 ring-blue-100 dark:ring-blue-900 transition-all duration-300 group-hover/profile:scale-110 group-hover/profile:ring-blue-200 dark:group-hover/profile:ring-blue-800"
                   />
                 ) : (
-                  <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg ring-4 ring-blue-100 dark:ring-blue-900 transition-all duration-300 group-hover/profile:scale-110">
+                  <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-2xl flex items-center justify-center shadow-lg ring-4 ring-blue-100 dark:ring-blue-900 transition-all duration-300 group-hover/profile:scale-110">
                     <User size={22} className="text-white" />
                   </div>
                 )}
@@ -346,7 +346,7 @@ export default function SidebarLayout() {
                 <X size={20} className="text-slate-600 dark:text-slate-300 group-hover:text-slate-800 dark:group-hover:text-slate-200" />
               )}
             </button>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent lg:hidden">
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent lg:hidden">
               Face<span className="text-blue-200">pay</span>
             </h1>
           </div>
@@ -372,7 +372,7 @@ export default function SidebarLayout() {
               {theme === "light" ? (
                 <Moon size={20} className="text-slate-600 group-hover:text-indigo-600 transition-colors" />
               ) : (
-                <Sun size={20} className="text-yellow-500 group-hover:text-orange-400 transition-colors" />
+                <Sun size={20} className="text-yellow-500 group-hover:text-amber-400 transition-colors" />
               )}
             </button>
 
@@ -401,8 +401,8 @@ export default function SidebarLayout() {
           {/* Elementos decorativos de fondo */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
             <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-400/5 rounded-full filter blur-3xl"></div>
-            <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-400/5 rounded-full filter blur-3xl"></div>
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-emerald-400/3 rounded-full filter blur-3xl"></div>
+            <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-cyan-400/5 rounded-full filter blur-3xl"></div>
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-sky-400/3 rounded-full filter blur-3xl"></div>
           </div>
           
           <div className="relative h-full">
@@ -415,11 +415,11 @@ export default function SidebarLayout() {
             ) : (
               <div className="flex flex-col items-center justify-center h-full text-center p-8">
                 <div className="max-w-md mx-auto space-y-8 relative z-10">
-                  <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-3xl flex items-center justify-center mx-auto shadow-2xl">
+                  <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-3xl flex items-center justify-center mx-auto shadow-2xl">
                     <User size={48} className="text-white" />
                   </div>
                   <div className="space-y-4">
-                    <h2 className="text-4xl font-black bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                    <h2 className="text-4xl font-black bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
                       Welcome Facepay!
                     </h2>
                     <p className="text-xl text-slate-600 dark:text-slate-400 leading-relaxed">
@@ -427,7 +427,7 @@ export default function SidebarLayout() {
                   </div>
                   <button
                     onClick={handleLogin}
-                    className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-105 hover:-translate-y-1"
+                    className="px-8 py-4 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-105 hover:-translate-y-1"
                   >
                     log In
                   </button>

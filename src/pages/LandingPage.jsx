@@ -17,12 +17,12 @@ export default function LandingPage() {
   }, []);
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 relative overflow-hidden">
+    <div className="min-h-screen w-full bg-gradient-to-br from-slate-50 via-blue-50 to-cyan-50 relative overflow-hidden">
       {/* Animated background elements */}
       <div className="absolute inset-0 w-full h-full">
         <div className="absolute top-1/4 left-1/4 w-32 h-32 sm:w-48 sm:h-48 bg-blue-200 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
-        <div className="absolute top-1/3 right-1/4 w-32 h-32 sm:w-48 sm:h-48 bg-purple-200 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse" style={{ animationDelay: '2s' }}></div>
-        <div className="absolute bottom-1/4 left-1/2 w-32 h-32 sm:w-48 sm:h-48 bg-indigo-200 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse" style={{ animationDelay: '4s' }}></div>
+        <div className="absolute top-1/3 right-1/4 w-32 h-32 sm:w-48 sm:h-48 bg-cyan-200 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute bottom-1/4 left-1/2 w-32 h-32 sm:w-48 sm:h-48 bg-sky-200 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse" style={{ animationDelay: '4s' }}></div>
       </div>
 
       {/* Main Content Container */}
@@ -88,8 +88,8 @@ export default function LandingPage() {
 
                 {/* Card 3 */}
                 <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 shadow-md border border-white/40 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 hover:bg-white/90 text-center">
-                  <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mb-3 mx-auto">
-                    <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="w-10 h-10 bg-cyan-100 rounded-lg flex items-center justify-center mb-3 mx-auto">
+                    <svg className="w-5 h-5 text-cyan-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                     </svg>
                   </div>
@@ -125,7 +125,7 @@ export default function LandingPage() {
                       <div className="space-y-4">
                         <button
                           onClick={() => navigate("/dashboard")}
-                          className="w-full px-3 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-medium rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                          className="w-full px-3 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-medium rounded-lg hover:from-blue-700 hover:to-cyan-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
                         >
                           Access Control Panel
                         </button>
@@ -149,7 +149,7 @@ export default function LandingPage() {
                   </div>
                   <button
                     onClick={() => loginWithRedirect()}
-                    className="w-full px-3 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-medium rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 "
+                    className="w-full px-3 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-medium rounded-lg hover:from-blue-700 hover:to-cyan-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 "
                   >
                     Sign In to Continue
                   </button>
