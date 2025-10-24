@@ -10,7 +10,7 @@ import Payroll from './pages/Payroll';
 import Reports from './pages/Reports';
 import { ThemeProvider } from "@/components/theme-provider";
 import './index.css';
-
+import Page from './pages/Page'
 
 function App() {
   return (
@@ -28,6 +28,7 @@ function App() {
             </ProtectedRoute>
           }
         >
+          <Route path="/page" element={<Page />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/employees" element={<Employees />} />
           <Route path="/attendance" element={<Attendance />} />
@@ -41,6 +42,8 @@ function App() {
     </Router>
   </ThemeProvider>
   );
+
+  
 }
 
 export default App;
