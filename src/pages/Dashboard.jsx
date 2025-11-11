@@ -7,9 +7,9 @@ import { getDashboardStats, getAttendanceRecords } from "../services/employeeSer
 
 const Dashboard = () => {
   const [stats, setStats] = useState({
-    totalEmployees: 0,
-    totalDepartments: 0,
-    totalPayroll: 0
+    totalEmployees: 5,
+    totalDepartments: 3,
+    totalPayroll: 20000
   });
   const [attendanceData, setAttendanceData] = useState([]);
   const [loading, setLoading] = useState(true);

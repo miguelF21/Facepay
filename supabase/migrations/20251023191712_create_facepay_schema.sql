@@ -145,185 +145,185 @@
 */
 
 -- Create info_contacto table
-CREATE TABLE IF NOT EXISTS info_contacto (
+CREATE TABLE IF NOT EXISTS contact_info (
   id SERIAL PRIMARY KEY,
-  telefono VARCHAR(16),
-  correo VARCHAR(40)
+  phone VARCHAR(16),
+  email VARCHAR(40)
 );
 
-ALTER TABLE info_contacto ENABLE ROW LEVEL SECURITY;
+ALTER TABLE contact_info ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Authenticated users can read contact info"
-  ON info_contacto FOR SELECT
+  ON contact_info FOR SELECT
   TO authenticated
   USING (true);
 
 CREATE POLICY "Authenticated users can insert contact info"
-  ON info_contacto FOR INSERT
+  ON contact_info FOR INSERT
   TO authenticated
   WITH CHECK (true);
 
 CREATE POLICY "Authenticated users can update contact info"
-  ON info_contacto FOR UPDATE
+  ON contact_info FOR UPDATE
   TO authenticated
   USING (true)
   WITH CHECK (true);
 
--- Create direccion table
-CREATE TABLE IF NOT EXISTS direccion (
+-- Create address table
+CREATE TABLE IF NOT EXISTS address (
   id SERIAL PRIMARY KEY,
-  calle VARCHAR(72),
-  ciudad VARCHAR(32),
-  estado VARCHAR(32),
-  codigo_postal VARCHAR(16)
+  street VARCHAR(72),
+  city VARCHAR(32),
+  state VARCHAR(32),
+  postal_code VARCHAR(16)
 );
 
-ALTER TABLE direccion ENABLE ROW LEVEL SECURITY;
+ALTER TABLE address ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Authenticated users can read addresses"
-  ON direccion FOR SELECT
+  ON address FOR SELECT
   TO authenticated
   USING (true);
 
 CREATE POLICY "Authenticated users can insert addresses"
-  ON direccion FOR INSERT
+  ON address FOR INSERT
   TO authenticated
   WITH CHECK (true);
 
 CREATE POLICY "Authenticated users can update addresses"
-  ON direccion FOR UPDATE
+  ON address FOR UPDATE
   TO authenticated
   USING (true)
   WITH CHECK (true);
 
--- Create usuario table
-CREATE TABLE IF NOT EXISTS usuario (
+-- Create user table
+CREATE TABLE IF NOT EXISTS user_account (
   id SERIAL PRIMARY KEY,
-  nombre_usuario VARCHAR(64),
-  correo VARCHAR(72) UNIQUE NOT NULL,
-  contrasena_hash VARCHAR(64),
-  rol VARCHAR(64) DEFAULT 'empleado',
-  creado_en TIMESTAMP DEFAULT now(),
-  actualizado_en TIMESTAMP DEFAULT now(),
-  activo BOOLEAN DEFAULT true
+  username VARCHAR(64),
+  email VARCHAR(72) UNIQUE NOT NULL,
+  password_hash VARCHAR(64),
+  role VARCHAR(64) DEFAULT 'employee',
+  created_at TIMESTAMP DEFAULT now(),
+  updated_at TIMESTAMP DEFAULT now(),
+  active BOOLEAN DEFAULT true
 );
 
-ALTER TABLE usuario ENABLE ROW LEVEL SECURITY;
+ALTER TABLE user_account ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Users can read own data"
-  ON usuario FOR SELECT
+  ON user_account FOR SELECT
   TO authenticated
-  USING (auth.uid()::text = id::text OR rol IN ('administrador', 'operador'));
+  USING (auth.uid()::text = id::text OR role IN ('admin', 'operator'));
 
 CREATE POLICY "Admins can insert users"
-  ON usuario FOR INSERT
+  ON user_account FOR INSERT
   TO authenticated
   WITH CHECK (
     EXISTS (
-      SELECT 1 FROM usuario WHERE id::text = auth.uid()::text AND rol = 'administrador'
+      SELECT 1 FROM user_account WHERE id::text = auth.uid()::text AND role = 'admin'
     )
   );
 
 CREATE POLICY "Users can update own data"
-  ON usuario FOR UPDATE
+  ON user_account FOR UPDATE
   TO authenticated
   USING (auth.uid()::text = id::text)
   WITH CHECK (auth.uid()::text = id::text);
 
--- Create administrador table
-CREATE TABLE IF NOT EXISTS administrador (
-  id_usuario INT PRIMARY KEY REFERENCES usuario(id) ON DELETE CASCADE
+-- Create admin table
+CREATE TABLE IF NOT EXISTS admin (
+  user_id INT PRIMARY KEY REFERENCES user_account(id) ON DELETE CASCADE
 );
 
-ALTER TABLE administrador ENABLE ROW LEVEL SECURITY;
+ALTER TABLE admin ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Authenticated users can read admins"
-  ON administrador FOR SELECT
+  ON admin FOR SELECT
   TO authenticated
   USING (true);
 
 CREATE POLICY "Admins can manage admin records"
-  ON administrador FOR ALL
+  ON admin FOR ALL
   TO authenticated
   USING (
     EXISTS (
-      SELECT 1 FROM usuario WHERE id::text = auth.uid()::text AND rol = 'administrador'
+      SELECT 1 FROM user_account WHERE id::text = auth.uid()::text AND role = 'admin'
     )
   );
 
--- Create operador table
-CREATE TABLE IF NOT EXISTS operador (
-  id_usuario INT PRIMARY KEY REFERENCES usuario(id) ON DELETE CASCADE
+-- Create operator table
+CREATE TABLE IF NOT EXISTS operator (
+  user_id INT PRIMARY KEY REFERENCES user_account(id) ON DELETE CASCADE
 );
 
-ALTER TABLE operador ENABLE ROW LEVEL SECURITY;
+ALTER TABLE operator ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Authenticated users can read operators"
-  ON operador FOR SELECT
+  ON operator FOR SELECT
   TO authenticated
   USING (true);
 
 CREATE POLICY "Admins can manage operator records"
-  ON operador FOR ALL
+  ON operator FOR ALL
   TO authenticated
   USING (
     EXISTS (
-      SELECT 1 FROM usuario WHERE id::text = auth.uid()::text AND rol = 'administrador'
+      SELECT 1 FROM user_account WHERE id::text = auth.uid()::text AND role = 'admin'
     )
   );
 
--- Create empleado table
-CREATE TABLE IF NOT EXISTS empleado (
+-- Create employee table
+CREATE TABLE IF NOT EXISTS employee (
   id SERIAL PRIMARY KEY,
-  id_usuario INT REFERENCES usuario(id) ON DELETE SET NULL,
-  nombres VARCHAR(40),
-  apellidos VARCHAR(40),
-  tipo_documento VARCHAR(64),
-  numero_documento INT,
-  cargo VARCHAR(64),
-  departamento VARCHAR(64),
-  codigo_empleado VARCHAR(16) UNIQUE,
-  id_contacto INT REFERENCES info_contacto(id) ON DELETE SET NULL,
-  id_direccion INT REFERENCES direccion(id) ON DELETE SET NULL
+  user_id INT REFERENCES user_account(id) ON DELETE SET NULL,
+  first_name VARCHAR(40),
+  last_name VARCHAR(40),
+  document_type VARCHAR(64),
+  document_number INT,
+  position VARCHAR(64),
+  department VARCHAR(64),
+  employee_code VARCHAR(16) UNIQUE,
+  contact_id INT REFERENCES contact_info(id) ON DELETE SET NULL,
+  address_id INT REFERENCES address(id) ON DELETE SET NULL
 );
 
-ALTER TABLE empleado ENABLE ROW LEVEL SECURITY;
+ALTER TABLE employee ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Authenticated users can read employees"
-  ON empleado FOR SELECT
+  ON employee FOR SELECT
   TO authenticated
   USING (true);
 
 CREATE POLICY "Admins and operators can insert employees"
-  ON empleado FOR INSERT
+  ON employee FOR INSERT
   TO authenticated
   WITH CHECK (
     EXISTS (
-      SELECT 1 FROM usuario WHERE id::text = auth.uid()::text AND rol IN ('administrador', 'operador')
+      SELECT 1 FROM user_account WHERE id::text = auth.uid()::text AND role IN ('admin', 'operator')
     )
   );
 
 CREATE POLICY "Admins and operators can update employees"
-  ON empleado FOR UPDATE
+  ON employee FOR UPDATE
   TO authenticated
   USING (
     EXISTS (
-      SELECT 1 FROM usuario WHERE id::text = auth.uid()::text AND rol IN ('administrador', 'operador')
+      SELECT 1 FROM user_account WHERE id::text = auth.uid()::text AND role IN ('admin', 'operator')
     )
   )
   WITH CHECK (
     EXISTS (
-      SELECT 1 FROM usuario WHERE id::text = auth.uid()::text AND rol IN ('administrador', 'operador')
+      SELECT 1 FROM user_account WHERE id::text = auth.uid()::text AND role IN ('admin', 'operator')
     )
   );
 
 -- Create terminal table
 CREATE TABLE IF NOT EXISTS terminal (
   id SERIAL PRIMARY KEY,
-  ubicacion VARCHAR(64),
-  direccion_ip VARCHAR(64),
-  version_firmware VARCHAR(32),
-  estado VARCHAR(32) DEFAULT 'activo'
+  location VARCHAR(64),
+  ip_address VARCHAR(64),
+  firmware_version VARCHAR(32),
+  status VARCHAR(32) DEFAULT 'active'
 );
 
 ALTER TABLE terminal ENABLE ROW LEVEL SECURITY;
@@ -338,321 +338,321 @@ CREATE POLICY "Admins can manage terminals"
   TO authenticated
   USING (
     EXISTS (
-      SELECT 1 FROM usuario WHERE id::text = auth.uid()::text AND rol = 'administrador'
+      SELECT 1 FROM user_account WHERE id::text = auth.uid()::text AND role = 'admin'
     )
   );
 
--- Create datos_biometricos table
-CREATE TABLE IF NOT EXISTS datos_biometricos (
+-- Create biometric_data table
+CREATE TABLE IF NOT EXISTS biometric_data (
   id SERIAL PRIMARY KEY,
-  tipo VARCHAR(64),
+  type VARCHAR(64),
   vector TEXT,
-  registrado_en TIMESTAMP DEFAULT now(),
-  id_terminal INT REFERENCES terminal(id) ON DELETE SET NULL,
-  id_empleado INT REFERENCES empleado(id) ON DELETE CASCADE
+  registered_at TIMESTAMP DEFAULT now(),
+  terminal_id INT REFERENCES terminal(id) ON DELETE SET NULL,
+  employee_id INT REFERENCES employee(id) ON DELETE CASCADE
 );
 
-ALTER TABLE datos_biometricos ENABLE ROW LEVEL SECURITY;
+ALTER TABLE biometric_data ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Authenticated users can read biometric data"
-  ON datos_biometricos FOR SELECT
+  ON biometric_data FOR SELECT
   TO authenticated
   USING (true);
 
 CREATE POLICY "Admins and operators can manage biometric data"
-  ON datos_biometricos FOR ALL
+  ON biometric_data FOR ALL
   TO authenticated
   USING (
     EXISTS (
-      SELECT 1 FROM usuario WHERE id::text = auth.uid()::text AND rol IN ('administrador', 'operador')
+      SELECT 1 FROM user_account WHERE id::text = auth.uid()::text AND role IN ('admin', 'operator')
     )
   );
 
--- Create intento_acceso table
-CREATE TABLE IF NOT EXISTS intento_acceso (
+-- Create access_attempt table
+CREATE TABLE IF NOT EXISTS access_attempt (
   id SERIAL PRIMARY KEY,
-  id_terminal INT REFERENCES terminal(id) ON DELETE SET NULL,
-  fecha_hora TIMESTAMP DEFAULT now(),
-  metodo VARCHAR(16),
-  resultado VARCHAR(16),
-  referencia_empleado INT REFERENCES empleado(id) ON DELETE SET NULL
+  terminal_id INT REFERENCES terminal(id) ON DELETE SET NULL,
+  timestamp TIMESTAMP DEFAULT now(),
+  method VARCHAR(16),
+  result VARCHAR(16),
+  employee_ref INT REFERENCES employee(id) ON DELETE SET NULL
 );
 
-ALTER TABLE intento_acceso ENABLE ROW LEVEL SECURITY;
+ALTER TABLE access_attempt ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Authenticated users can read access attempts"
-  ON intento_acceso FOR SELECT
+  ON access_attempt FOR SELECT
   TO authenticated
   USING (true);
 
 CREATE POLICY "System can insert access attempts"
-  ON intento_acceso FOR INSERT
+  ON access_attempt FOR INSERT
   TO authenticated
   WITH CHECK (true);
 
--- Create resultado_reconocimiento table
-CREATE TABLE IF NOT EXISTS resultado_reconocimiento (
+-- Create recognition_result table
+CREATE TABLE IF NOT EXISTS recognition_result (
   id SERIAL PRIMARY KEY,
-  coincidencia BOOLEAN,
-  id_empleado INT REFERENCES empleado(id) ON DELETE SET NULL,
-  confianza FLOAT,
-  fecha_hora TIMESTAMP DEFAULT now(),
-  id_intento INT REFERENCES intento_acceso(id) ON DELETE CASCADE
+  match BOOLEAN,
+  employee_id INT REFERENCES employee(id) ON DELETE SET NULL,
+  confidence FLOAT,
+  timestamp TIMESTAMP DEFAULT now(),
+  attempt_id INT REFERENCES access_attempt(id) ON DELETE CASCADE
 );
 
-ALTER TABLE resultado_reconocimiento ENABLE ROW LEVEL SECURITY;
+ALTER TABLE recognition_result ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Authenticated users can read recognition results"
-  ON resultado_reconocimiento FOR SELECT
+  ON recognition_result FOR SELECT
   TO authenticated
   USING (true);
 
 CREATE POLICY "System can insert recognition results"
-  ON resultado_reconocimiento FOR INSERT
+  ON recognition_result FOR INSERT
   TO authenticated
   WITH CHECK (true);
 
--- Create registro_asistencia table
-CREATE TABLE IF NOT EXISTS registro_asistencia (
+-- Create attendance_record table
+CREATE TABLE IF NOT EXISTS attendance_record (
   id SERIAL PRIMARY KEY,
-  id_empleado INT REFERENCES empleado(id) ON DELETE CASCADE,
-  fecha DATE DEFAULT CURRENT_DATE,
-  hora_entrada TIME,
-  hora_salida TIME,
-  terminal_origen VARCHAR(64),
-  estado BOOLEAN DEFAULT true
+  employee_id INT REFERENCES employee(id) ON DELETE CASCADE,
+  date DATE DEFAULT CURRENT_DATE,
+  check_in TIME,
+  check_out TIME,
+  source_terminal VARCHAR(64),
+  status BOOLEAN DEFAULT true
 );
 
-ALTER TABLE registro_asistencia ENABLE ROW LEVEL SECURITY;
+ALTER TABLE attendance_record ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Authenticated users can read attendance"
-  ON registro_asistencia FOR SELECT
+  ON attendance_record FOR SELECT
   TO authenticated
   USING (true);
 
 CREATE POLICY "System can insert attendance records"
-  ON registro_asistencia FOR INSERT
+  ON attendance_record FOR INSERT
   TO authenticated
   WITH CHECK (true);
 
 CREATE POLICY "Admins and operators can update attendance"
-  ON registro_asistencia FOR UPDATE
+  ON attendance_record FOR UPDATE
   TO authenticated
   USING (
     EXISTS (
-      SELECT 1 FROM usuario WHERE id::text = auth.uid()::text AND rol IN ('administrador', 'operador')
+      SELECT 1 FROM user_account WHERE id::text = auth.uid()::text AND role IN ('admin', 'operator')
     )
   )
   WITH CHECK (
     EXISTS (
-      SELECT 1 FROM usuario WHERE id::text = auth.uid()::text AND rol IN ('administrador', 'operador')
+      SELECT 1 FROM user_account WHERE id::text = auth.uid()::text AND role IN ('admin', 'operator')
     )
   );
 
--- Create registro_nomina table
-CREATE TABLE IF NOT EXISTS registro_nomina (
+-- Create payroll_record table
+CREATE TABLE IF NOT EXISTS payroll_record (
   id SERIAL PRIMARY KEY,
-  id_empleado INT REFERENCES empleado(id) ON DELETE CASCADE,
-  inicio_periodo DATE,
-  fin_periodo DATE,
-  salario_bruto DECIMAL(12,2),
-  deducciones DECIMAL(12,2),
-  salario_neto DECIMAL(12,2)
+  employee_id INT REFERENCES employee(id) ON DELETE CASCADE,
+  period_start DATE,
+  period_end DATE,
+  gross_salary DECIMAL(12,2),
+  deductions DECIMAL(12,2),
+  net_salary DECIMAL(12,2)
 );
 
-ALTER TABLE registro_nomina ENABLE ROW LEVEL SECURITY;
+ALTER TABLE payroll_record ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Employees can read own payroll"
-  ON registro_nomina FOR SELECT
+  ON payroll_record FOR SELECT
   TO authenticated
   USING (
-    id_empleado IN (
-      SELECT id FROM empleado WHERE id_usuario::text = auth.uid()::text
+    employee_id IN (
+      SELECT id FROM employee WHERE user_id::text = auth.uid()::text
     ) OR
     EXISTS (
-      SELECT 1 FROM usuario WHERE id::text = auth.uid()::text AND rol IN ('administrador', 'operador')
+      SELECT 1 FROM user_account WHERE id::text = auth.uid()::text AND role IN ('admin', 'operator')
     )
   );
 
 CREATE POLICY "Admins can manage payroll"
-  ON registro_nomina FOR ALL
+  ON payroll_record FOR ALL
   TO authenticated
   USING (
     EXISTS (
-      SELECT 1 FROM usuario WHERE id::text = auth.uid()::text AND rol = 'administrador'
+      SELECT 1 FROM user_account WHERE id::text = auth.uid()::text AND role = 'admin'
     )
   );
 
--- Create concepto table
-CREATE TABLE IF NOT EXISTS concepto (
-  codigo VARCHAR(24) PRIMARY KEY,
-  descripcion VARCHAR(120),
-  monto DECIMAL(12,2),
-  id_nomina INT REFERENCES registro_nomina(id) ON DELETE CASCADE
+-- Create concept table
+CREATE TABLE IF NOT EXISTS concept (
+  code VARCHAR(24) PRIMARY KEY,
+  description VARCHAR(120),
+  amount DECIMAL(12,2),
+  payroll_id INT REFERENCES payroll_record(id) ON DELETE CASCADE
 );
 
-ALTER TABLE concepto ENABLE ROW LEVEL SECURITY;
+ALTER TABLE concept ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Users with payroll access can read concepts"
-  ON concepto FOR SELECT
+  ON concept FOR SELECT
   TO authenticated
   USING (
-    id_nomina IN (
-      SELECT rn.id FROM registro_nomina rn
-      JOIN empleado e ON rn.id_empleado = e.id
-      WHERE e.id_usuario::text = auth.uid()::text
+    payroll_id IN (
+      SELECT pr.id FROM payroll_record pr
+      JOIN employee e ON pr.employee_id = e.id
+      WHERE e.user_id::text = auth.uid()::text
     ) OR
     EXISTS (
-      SELECT 1 FROM usuario WHERE id::text = auth.uid()::text AND rol IN ('administrador', 'operador')
+      SELECT 1 FROM user_account WHERE id::text = auth.uid()::text AND role IN ('admin', 'operator')
     )
   );
 
 CREATE POLICY "Admins can manage concepts"
-  ON concepto FOR ALL
+  ON concept FOR ALL
   TO authenticated
   USING (
     EXISTS (
-      SELECT 1 FROM usuario WHERE id::text = auth.uid()::text AND rol = 'administrador'
+      SELECT 1 FROM user_account WHERE id::text = auth.uid()::text AND role = 'admin'
     )
   );
 
--- Create recibo_pago table
-CREATE TABLE IF NOT EXISTS recibo_pago (
+-- Create payment_receipt table
+CREATE TABLE IF NOT EXISTS payment_receipt (
   id SERIAL PRIMARY KEY,
-  id_nomina INT REFERENCES registro_nomina(id) ON DELETE CASCADE,
-  id_empleado INT REFERENCES empleado(id) ON DELETE CASCADE,
-  generado_en TIMESTAMP DEFAULT now(),
-  referencia_pdf VARCHAR(255)
+  payroll_id INT REFERENCES payroll_record(id) ON DELETE CASCADE,
+  employee_id INT REFERENCES employee(id) ON DELETE CASCADE,
+  generated_at TIMESTAMP DEFAULT now(),
+  pdf_reference VARCHAR(255)
 );
 
-ALTER TABLE recibo_pago ENABLE ROW LEVEL SECURITY;
+ALTER TABLE payment_receipt ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Employees can read own payment receipts"
-  ON recibo_pago FOR SELECT
+  ON payment_receipt FOR SELECT
   TO authenticated
   USING (
-    id_empleado IN (
-      SELECT id FROM empleado WHERE id_usuario::text = auth.uid()::text
+    employee_id IN (
+      SELECT id FROM employee WHERE user_id::text = auth.uid()::text
     ) OR
     EXISTS (
-      SELECT 1 FROM usuario WHERE id::text = auth.uid()::text AND rol IN ('administrador', 'operador')
+      SELECT 1 FROM user_account WHERE id::text = auth.uid()::text AND role IN ('admin', 'operator')
     )
   );
 
 CREATE POLICY "Admins can manage payment receipts"
-  ON recibo_pago FOR ALL
+  ON payment_receipt FOR ALL
   TO authenticated
   USING (
     EXISTS (
-      SELECT 1 FROM usuario WHERE id::text = auth.uid()::text AND rol = 'administrador'
+      SELECT 1 FROM user_account WHERE id::text = auth.uid()::text AND role = 'admin'
     )
   );
 
--- Create reporte table
-CREATE TABLE IF NOT EXISTS reporte (
+-- Create report table
+CREATE TABLE IF NOT EXISTS report (
   id SERIAL PRIMARY KEY,
-  titulo VARCHAR(116),
-  generado_en TIMESTAMP DEFAULT now(),
-  filtros JSONB,
-  referencia_archivo VARCHAR(64),
-  id_admin INT REFERENCES administrador(id_usuario) ON DELETE SET NULL
+  title VARCHAR(116),
+  generated_at TIMESTAMP DEFAULT now(),
+  filters JSONB,
+  file_reference VARCHAR(64),
+  admin_id INT REFERENCES admin(user_id) ON DELETE SET NULL
 );
 
-ALTER TABLE reporte ENABLE ROW LEVEL SECURITY;
+ALTER TABLE report ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Admins can read all reports"
-  ON reporte FOR SELECT
+  ON report FOR SELECT
   TO authenticated
   USING (
     EXISTS (
-      SELECT 1 FROM usuario WHERE id::text = auth.uid()::text AND rol = 'administrador'
+      SELECT 1 FROM user_account WHERE id::text = auth.uid()::text AND role = 'admin'
     )
   );
 
 CREATE POLICY "Admins can manage reports"
-  ON reporte FOR ALL
+  ON report FOR ALL
   TO authenticated
   USING (
     EXISTS (
-      SELECT 1 FROM usuario WHERE id::text = auth.uid()::text AND rol = 'administrador'
+      SELECT 1 FROM user_account WHERE id::text = auth.uid()::text AND role = 'admin'
     )
   );
 
--- Create config_sistema table
-CREATE TABLE IF NOT EXISTS config_sistema (
+-- Create system_config table
+CREATE TABLE IF NOT EXISTS system_config (
   id SERIAL PRIMARY KEY,
-  configuraciones JSONB DEFAULT '{}'::jsonb
+  settings JSONB DEFAULT '{}'::jsonb
 );
 
-ALTER TABLE config_sistema ENABLE ROW LEVEL SECURITY;
+ALTER TABLE system_config ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Authenticated users can read config"
-  ON config_sistema FOR SELECT
+  ON system_config FOR SELECT
   TO authenticated
   USING (true);
 
 CREATE POLICY "Admins can manage config"
-  ON config_sistema FOR ALL
+  ON system_config FOR ALL
   TO authenticated
   USING (
     EXISTS (
-      SELECT 1 FROM usuario WHERE id::text = auth.uid()::text AND rol = 'administrador'
+      SELECT 1 FROM user_account WHERE id::text = auth.uid()::text AND role = 'admin'
     )
   );
 
--- Create registro_auditoria table
-CREATE TABLE IF NOT EXISTS registro_auditoria (
+-- Create audit_log table
+CREATE TABLE IF NOT EXISTS audit_log (
   id SERIAL PRIMARY KEY,
-  accion VARCHAR(150),
-  id_usuario INT REFERENCES usuario(id) ON DELETE SET NULL,
-  fecha_hora TIMESTAMP DEFAULT now(),
-  detalles JSONB
+  action VARCHAR(150),
+  user_id INT REFERENCES user_account(id) ON DELETE SET NULL,
+  timestamp TIMESTAMP DEFAULT now(),
+  details JSONB
 );
 
-ALTER TABLE registro_auditoria ENABLE ROW LEVEL SECURITY;
+ALTER TABLE audit_log ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Admins can read audit logs"
-  ON registro_auditoria FOR SELECT
+  ON audit_log FOR SELECT
   TO authenticated
   USING (
     EXISTS (
-      SELECT 1 FROM usuario WHERE id::text = auth.uid()::text AND rol = 'administrador'
+      SELECT 1 FROM user_account WHERE id::text = auth.uid()::text AND role = 'admin'
     )
   );
 
 CREATE POLICY "System can insert audit logs"
-  ON registro_auditoria FOR INSERT
+  ON audit_log FOR INSERT
   TO authenticated
   WITH CHECK (true);
 
--- Create token_autenticacion table
-CREATE TABLE IF NOT EXISTS token_autenticacion (
+-- Create auth_token table
+CREATE TABLE IF NOT EXISTS auth_token (
   token VARCHAR(255) PRIMARY KEY,
-  id_usuario INT REFERENCES usuario(id) ON DELETE CASCADE,
-  expira_en TIMESTAMP
+  user_id INT REFERENCES user_account(id) ON DELETE CASCADE,
+  expires_at TIMESTAMP
 );
 
-ALTER TABLE token_autenticacion ENABLE ROW LEVEL SECURITY;
+ALTER TABLE auth_token ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Users can read own tokens"
-  ON token_autenticacion FOR SELECT
+  ON auth_token FOR SELECT
   TO authenticated
-  USING (id_usuario::text = auth.uid()::text);
+  USING (user_id::text = auth.uid()::text);
 
 CREATE POLICY "Users can manage own tokens"
-  ON token_autenticacion FOR ALL
+  ON auth_token FOR ALL
   TO authenticated
-  USING (id_usuario::text = auth.uid()::text);
+  USING (user_id::text = auth.uid()::text);
 
 -- Create indexes for performance
-CREATE INDEX IF NOT EXISTS idx_usuario_correo ON usuario(correo);
-CREATE INDEX IF NOT EXISTS idx_empleado_codigo ON empleado(codigo_empleado);
-CREATE INDEX IF NOT EXISTS idx_empleado_usuario ON empleado(id_usuario);
-CREATE INDEX IF NOT EXISTS idx_datos_biometricos_empleado ON datos_biometricos(id_empleado);
-CREATE INDEX IF NOT EXISTS idx_intento_acceso_terminal ON intento_acceso(id_terminal);
-CREATE INDEX IF NOT EXISTS idx_intento_acceso_fecha ON intento_acceso(fecha_hora);
-CREATE INDEX IF NOT EXISTS idx_registro_asistencia_empleado ON registro_asistencia(id_empleado);
-CREATE INDEX IF NOT EXISTS idx_registro_asistencia_fecha ON registro_asistencia(fecha);
-CREATE INDEX IF NOT EXISTS idx_registro_nomina_empleado ON registro_nomina(id_empleado);
-CREATE INDEX IF NOT EXISTS idx_registro_auditoria_usuario ON registro_auditoria(id_usuario);
-CREATE INDEX IF NOT EXISTS idx_registro_auditoria_fecha ON registro_auditoria(fecha_hora);
+CREATE INDEX IF NOT EXISTS idx_user_email ON user_account(email);
+CREATE INDEX IF NOT EXISTS idx_employee_code ON employee(employee_code);
+CREATE INDEX IF NOT EXISTS idx_employee_user ON employee(user_id);
+CREATE INDEX IF NOT EXISTS idx_biometric_employee ON biometric_data(employee_id);
+CREATE INDEX IF NOT EXISTS idx_access_terminal ON access_attempt(terminal_id);
+CREATE INDEX IF NOT EXISTS idx_access_timestamp ON access_attempt(timestamp);
+CREATE INDEX IF NOT EXISTS idx_attendance_employee ON attendance_record(employee_id);
+CREATE INDEX IF NOT EXISTS idx_attendance_date ON attendance_record(date);
+CREATE INDEX IF NOT EXISTS idx_payroll_employee ON payroll_record(employee_id);
+CREATE INDEX IF NOT EXISTS idx_audit_user ON audit_log(user_id);
+CREATE INDEX IF NOT EXISTS idx_audit_timestamp ON audit_log(timestamp);
