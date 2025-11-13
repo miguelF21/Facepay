@@ -1,0 +1,462 @@
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { motion } from 'framer-motion';
+import { 
+  Briefcase, 
+  Users, 
+  DollarSign, 
+  Clock, 
+  Calendar, 
+  UserPlus, 
+  FileText, 
+  RefreshCw,
+  ArrowUpRight,
+  CheckCircle2,
+  Clock as ClockIcon,
+  AlertTriangle,
+  BarChart2,
+  Activity
+} from 'lucide-react';
+import { format, subDays } from 'date-fns';
+import { es } from 'date-fns/locale';
+
+// Components
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Skeleton } from '@/components/ui/skeleton';
+
+// Charts
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+
+// Services
+import { getDashboardStats, getAttendanceRecords, getRecentActivities } from '@/services/employeeService';
+import { cn } from '@/lib/utils';
+
+// Generate date labels for the last 7 days
+const generateDateLabels = () => {
+  const today = new Date();
+  return Array.from({ length: 7 }, (_, i) => {
+    const date = subDays(today, 6 - i);
+    return {
+      date: format(date, 'EEE', { locale: es }),
+      fullDate: format(date, 'yyyy-MM-dd')
+    };
+  });
+};
+
+// Process attendance data for the chart
+const processAttendanceData = (attendance = []) => {
+  const dateLabels = generateDateLabels();
+  const dateMap = new Map(dateLabels.map(item => [item.fullDate, { ...item, count: 0 }]));
+  
+  attendance.forEach(record => {
+    const date = format(new Date(record.fecha), 'yyyy-MM-dd');
+    if (dateMap.has(date)) {
+      dateMap.get(date).count += 1;
+    }
+  });
+  
+  return Array.from(dateMap.values());
+};
+
+const Dashboard = () => {
+  const [dateRange, setDateRange] = useState('week');
+  
+  // Fetch dashboard stats
+  const { data: stats = {}, isLoading: isLoadingStats, refetch: refetchStats } = useQuery({
+    queryKey: ['dashboardStats'],
+    queryFn: getDashboardStats,
+    initialData: { 
+      totalEmployees: 0, 
+      totalDepartments: 0, 
+      totalPayroll: 0, 
+      attendanceRate: 0,
+      activeEmployees: 0
+    }
+  });
+  
+  // Fetch attendance data
+  const { data: attendanceData = [], isLoading: isLoadingAttendance, refetch: refetchAttendance } = useQuery({
+    queryKey: ['attendanceRecords'],
+    queryFn: getAttendanceRecords,
+    select: processAttendanceData,
+    initialData: []
+  });
+  
+  // Fetch recent activities
+  const { data: recentActivities = [], isLoading: isLoadingActivities } = useQuery({
+    queryKey: ['recentActivities'],
+    queryFn: getRecentActivities,
+    initialData: []
+  });
+  
+  const isLoading = isLoadingStats || isLoadingAttendance || isLoadingActivities;
+
+  const handleRefresh = () => {
+    refetchStats();
+    refetchAttendance();
+  };
+
+  // Loading skeleton
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-10 w-64" />
+          <Skeleton className="h-10 w-32" />
+        </div>
+        
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {[1, 2, 3, 4].map((i) => (
+            <Skeleton key={i} className="h-36 rounded-xl" />
+          ))}
+        </div>
+        
+        <div className="grid gap-4 md:grid-cols-2">
+          <Skeleton className="h-96 rounded-xl" />
+          <div className="space-y-4">
+            <Skeleton className="h-12 rounded-xl" />
+            <Skeleton className="h-80 rounded-xl" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col justify-between space-y-4 sm:flex-row sm:items-center sm:space-y-0">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Panel de Control</h1>
+          <p className="text-muted-foreground">
+            {format(new Date(), 'EEEE, d \'de\' MMMM \'de\' yyyy', { locale: es })}
+          </p>
+        </div>
+        <div className="flex items-center space-x-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="ml-auto gap-1"
+            onClick={handleRefresh}
+          >
+            <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+            <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+              Actualizar
+            </span>
+          </Button>
+        </div>
+      </div>
+
+      {/* Stats Grid */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <StatCard
+          title="Empleados"
+          value={stats.totalEmployees}
+          icon={Users}
+          trend="+12.5%"
+          trendType="increase"
+          description="vs mes anterior"
+          iconColor="text-blue-600"
+          bgColor="bg-blue-100 dark:bg-blue-900/30"
+        />
+        
+        <StatCard
+          title="Departamentos"
+          value={stats.totalDepartments}
+          icon={Briefcase}
+          trend="+2"
+          trendType="increase"
+          description="vs mes anterior"
+          iconColor="text-emerald-600"
+          bgColor="bg-emerald-100 dark:bg-emerald-900/30"
+        />
+        
+        <StatCard
+          title="Nómina Total"
+          value={`$${stats.totalPayroll.toLocaleString('es-ES')}`}
+          icon={DollarSign}
+          trend="+5.2%"
+          trendType="increase"
+          description="vs mes anterior"
+          iconColor="text-amber-600"
+          bgColor="bg-amber-100 dark:bg-amber-900/30"
+        />
+        
+        <StatCard
+          title="Asistencia"
+          value={`${stats.attendanceRate}%`}
+          icon={CheckCircle2}
+          trend="+2.1%"
+          trendType="increase"
+          description="vs semana pasada"
+          iconColor="text-green-600"
+          bgColor="bg-green-100 dark:bg-green-900/30"
+        />
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+        {/* Attendance Chart */}
+        <Card className="lg:col-span-4">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Resumen de Asistencia</CardTitle>
+                <CardDescription>Tendencias semanales de asistencia</CardDescription>
+              </div>
+              <Tabs 
+                value={dateRange} 
+                onValueChange={setDateRange}
+                className="w-[180px]"
+              >
+                <TabsList className="grid grid-cols-2">
+                  <TabsTrigger value="week">Semana</TabsTrigger>
+                  <TabsTrigger value="month">Mes</TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
+          </CardHeader>
+          <CardContent className="pl-2">
+            {attendanceData.length > 0 ? (
+              <div className="h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={attendanceData}
+                    margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                    <XAxis 
+                      dataKey="date"
+                      tick={{ fontSize: 12 }}
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <YAxis 
+                      tick={{ fontSize: 12 }}
+                      axisLine={false}
+                      tickLine={false}
+                      tickFormatter={(value) => `${value}`}
+                    />
+                    <Tooltip 
+                      content={({ active, payload, label }) => {
+                        if (active && payload && payload.length) {
+                          return (
+                            <div className="bg-background border rounded-lg p-3 shadow-lg">
+                              <p className="font-medium">{label}</p>
+                              <p className="text-sm text-muted-foreground">
+                                {payload[0].value} empleados
+                              </p>
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
+                    />
+                    <Bar 
+                      dataKey="count" 
+                      fill="#3b82f6"
+                      radius={[4, 4, 0, 0]}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            ) : (
+              <div className="flex h-[300px] flex-col items-center justify-center rounded-md border border-dashed p-8 text-center animate-in fade-in-50">
+                <div className="mx-auto flex max-w-[420px] flex-col items-center justify-center text-center">
+                  <ClockIcon className="h-10 w-10 text-muted-foreground" />
+                  <h3 className="mt-4 text-lg font-semibold">Sin datos de asistencia</h3>
+                  <p className="mb-4 mt-2 text-sm text-muted-foreground">
+                    Los registros de asistencia aparecerán aquí una vez disponibles.
+                  </p>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Recent Activities */}
+        <Card className="lg:col-span-3">
+          <CardHeader>
+            <CardTitle>Actividad Reciente</CardTitle>
+            <CardDescription>Últimas acciones en el sistema</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-6">
+              {recentActivities.length > 0 ? (
+                <div className="space-y-6">
+                  {recentActivities.map((activity, index) => (
+                    <ActivityItem key={index} activity={activity} />
+                  ))}
+                </div>
+              ) : (
+                <div className="flex h-[250px] flex-col items-center justify-center rounded-md border border-dashed p-8 text-center">
+                  <div className="mx-auto flex max-w-[300px] flex-col items-center justify-center text-center">
+                    <AlertTriangle className="h-10 w-10 text-muted-foreground" />
+                    <h3 className="mt-4 text-lg font-semibold">Sin actividad reciente</h3>
+                    <p className="mb-4 mt-2 text-sm text-muted-foreground">
+                      Las actividades aparecerán aquí a medida que ocurran.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Acciones Rápidas</CardTitle>
+          </CardHeader>
+          <CardContent className="grid gap-2">
+            <Button variant="outline" className="justify-start">
+              <UserPlus className="mr-2 h-4 w-4" />
+              Agregar Empleado
+            </Button>
+            <Button variant="outline" className="justify-start">
+              <FileText className="mr-2 h-4 w-4" />
+              Generar Reporte
+            </Button>
+            <Button variant="outline" className="justify-start">
+              <Calendar className="mr-2 h-4 w-4" />
+              Programar Reunión
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card className="lg:col-span-3">
+          <CardHeader>
+            <CardTitle>Próximos Eventos</CardTitle>
+            <CardDescription>Próximos 7 días</CardDescription>
+          </CardHeader>
+          <CardContent> 
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30">
+                    <Calendar className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Reunión de Equipo</p>
+                    <p className="text-sm text-muted-foreground">
+                      {format(new Date(), 'd MMM, yyyy', { locale: es })} • 10:00 AM - 11:30 AM
+                    </p>
+                  </div>
+                </div>
+                <Button variant="ghost" size="sm" className="h-8">
+                  <ArrowUpRight className="h-4 w-4" />
+                </Button>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/30">
+                    <DollarSign className="h-5 w-5 text-amber-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Procesamiento de Nómina</p>
+                    <p className="text-sm text-muted-foreground">
+                      {format(new Date(), 'd MMM, yyyy', { locale: es })} • Todo el día
+                    </p>
+                  </div>
+                </div>
+                <Button variant="ghost" size="sm" className="h-8">
+                  <ArrowUpRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+};
+
+// Stat Card Component
+const StatCard = ({
+  title,
+  value,
+  icon: Icon,
+  trend,
+  trendType,
+  description,
+  iconColor,
+  bgColor,
+}) => {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      whileHover={{ y: -2 }}
+      transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+    >
+      <Card className="h-full hover:shadow-md transition-shadow">
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">{title}</p>
+              <div className="mt-1 flex items-baseline">
+                <h3 className="text-2xl font-bold">{value}</h3>
+                {trend && (
+                  <span
+                    className={cn(
+                      'ml-2 text-xs font-medium',
+                      trendType === 'increase' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+                    )}
+                  >
+                    {trend}
+                  </span>
+                )}
+              </div>
+              {description && (
+                <p className="mt-1 text-xs text-muted-foreground">{description}</p>
+              )}
+            </div>
+            <div className={cn('rounded-lg p-3', bgColor)}>
+              <Icon className={cn('h-6 w-6', iconColor)} />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
+};
+
+// Activity Item Component
+const ActivityItem = ({ activity }) => {
+  const getActivityIcon = (type) => {
+    switch (type) {
+      case 'login':
+        return <CheckCircle2 className="h-4 w-4 text-green-500" />;
+      case 'update':
+        return <RefreshCw className="h-4 w-4 text-blue-500" />;
+      case 'create':
+        return <UserPlus className="h-4 w-4 text-amber-500" />;
+      default:
+        return <CheckCircle2 className="h-4 w-4 text-gray-500" />;
+    }
+  };
+
+  return (
+    <div className="flex items-start space-x-3">
+      <div className="flex-shrink-0 mt-0.5">
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted">
+          {getActivityIcon(activity.type)}
+        </div>
+      </div>
+      <div className="flex-1 space-y-1">
+        <div className="flex items-center justify-between">
+          <p className="text-sm font-medium leading-none">{activity.title}</p>
+          <time className="text-xs text-muted-foreground">
+            {format(new Date(activity.timestamp), 'h:mm a', { locale: es })}
+          </time>
+        </div>
+        <p className="text-sm text-muted-foreground">{activity.description}</p>
+      </div>
+    </div>
+  );
+};
+
+export default Dashboard;
