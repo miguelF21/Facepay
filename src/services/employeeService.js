@@ -97,42 +97,50 @@ export async function createEmployee(employee, photoFile = null) {
     let addressId = null;
     let photoUrl = null;
 
-    // Create contact info if provided
+    // Create contact info if provided - make insertion optional
     if (employee.contact && (employee.contact.phone || employee.contact.email)) {
-      const { data: contactData, error: contactError } = await supabase
-        .from('contact_info')
-        .insert([{ 
-          phone: employee.contact.phone || null, 
-          email: employee.contact.email || null 
-        }])
-        .select()
-        .single();
-      
-      if (contactError) {
-        console.error('Contact error:', contactError);
-        throw new Error('Failed to create contact information');
+      try {
+        const { data: contactData, error: contactError } = await supabase
+          .from('contact_info')
+          .insert({ 
+            phone: employee.contact.phone || null, 
+            email: employee.contact.email || null 
+          })
+          .select()
+          .single();
+        
+        if (contactError) {
+          console.warn('Contact info creation failed, continuing without it:', contactError);
+        } else {
+          contactId = contactData?.id;
+        }
+      } catch (contactError) {
+        console.warn('Contact creation error, continuing without it:', contactError);
       }
-      contactId = contactData.id;
     }
 
-    // Create address if provided
+    // Create address if provided - make insertion optional
     if (employee.address && (employee.address.street || employee.address.city)) {
-      const { data: addressData, error: addressError } = await supabase
-        .from('address')
-        .insert([{ 
-          street: employee.address.street || null, 
-          city: employee.address.city || null, 
-          state: employee.address.state || null, 
-          postal_code: employee.address.postal_code || null 
-        }])
-        .select()
-        .single();
-      
-      if (addressError) {
-        console.error('Address error:', addressError);
-        throw new Error('Failed to create address');
+      try {
+        const { data: addressData, error: addressError } = await supabase
+          .from('address')
+          .insert({ 
+            street: employee.address.street || null, 
+            city: employee.address.city || null, 
+            state: employee.address.state || null, 
+            postal_code: employee.address.postal_code || null 
+          })
+          .select()
+          .single();
+        
+        if (addressError) {
+          console.warn('Address creation failed, continuing without it:', addressError);
+        } else {
+          addressId = addressData?.id;
+        }
+      } catch (addressError) {
+        console.warn('Address creation error, continuing without it:', addressError);
       }
-      addressId = addressData.id;
     }
 
     // Upload photo if provided
@@ -140,26 +148,25 @@ export async function createEmployee(employee, photoFile = null) {
       try {
         photoUrl = await uploadEmployeePhoto(photoFile, employee.employee_code);
       } catch (photoError) {
-        console.error('Photo upload failed:', photoError);
-        // Continue without photo rather than failing completely
+        console.warn('Photo upload failed, continuing without it:', photoError);
       }
     }
 
-    // Create employee record
+    // Create employee record - this is the critical operation
     const { data, error } = await supabase
       .from('employee')
-      .insert([{ 
+      .insert({ 
         first_name: employee.first_name,
         last_name: employee.last_name,
         document_type: employee.document_type || 'CC',
-        document_number: employee.document_number || null,
+        document_number: employee.document_number ? parseInt(employee.document_number) : null,
         position: employee.position,
         department: employee.department,
         employee_code: employee.employee_code,
         contact_id: contactId,
         address_id: addressId,
         photo_url: photoUrl
-      }])
+      })
       .select(`*, contact_info:contact_id(*), address:address_id(*)`)
       .single();
     
