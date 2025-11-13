@@ -11,40 +11,42 @@ import Reports from './pages/Reports';
 import Settings from './pages/Settings';
 import { ThemeProvider } from "@/components/theme-provider";
 import './index.css';
-import Page from './pages/Page'
+import Page from './pages/Page';
 import FacialLogin from './pages/FacialLogin';
 
 function App() {
   return (
-  <ThemeProvider>
-    <Router>
-      <Routes>
-        {/* Public page without Sidebar */}
-        <Route path="/" element={<LandingPage />} />
-
-        {/* Protected routes with Sidebar */}
-        <Route
-          element={
-            <ProtectedRoute>
-              <SidebarLayout />
-            </ProtectedRoute>
-          }
-        >
-          <Route path="/page" element={<Page />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/employees" element={<Employees />} />
-          <Route path="/attendance" element={<Attendance />} />
-          <Route path="/payroll" element={<Payroll />} />
-          <Route path="/reports" element={<Reports />} />
-          <Route path="/settings" element={<Settings />} />
+    <ThemeProvider>
+      <Router>
+        <Routes>
+          {/* Public routes without Sidebar */}
+          <Route path="/" element={<LandingPage />} />
+          
+          {/* Facial Login - PUBLIC route (no requiere Auth0) */}
           <Route path="/facial-login" element={<FacialLogin />} />
-        </Route>
 
-        {/* Default redirect */}
-        <Route path="*" element={<Navigate to="/" />} />
-      </Routes>
-    </Router>
-  </ThemeProvider>
+          {/* Protected routes with Sidebar */}
+          <Route
+            element={
+              <ProtectedRoute>
+                <SidebarLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route path="/page" element={<Page />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/employees" element={<Employees />} />
+            <Route path="/attendance" element={<Attendance />} />
+            <Route path="/payroll" element={<Payroll />} />
+            <Route path="/reports" element={<Reports />} />
+            <Route path="/settings" element={<Settings />} />
+          </Route>
+
+          {/* Default redirect */}
+          <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
+      </Router>
+    </ThemeProvider>
   );
 }
 
