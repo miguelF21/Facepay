@@ -273,8 +273,9 @@ export default function EmployeeForm({ onSuccess }) {
           </div>
         </div>
 
+        {/* Salary Row (Icon with clear padding) */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
+        <div>
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">
               Employee Code *
             </label>
@@ -288,27 +289,27 @@ export default function EmployeeForm({ onSuccess }) {
               required 
             />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">
-              Monthly Salary
-            </label>
-            <div className="relative">
-              <DollarSign className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
-              <input 
-                type="number" 
-                name="salary" 
-                value={form.salary} 
-                onChange={handleChange} 
-                placeholder="e.g., 3500000" 
-                min="0"
-                step="0.01"
-                className="w-full pl-12 pr-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" 
-              />
-            </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-              Enter monthly salary amount
-            </p>
+        <div>
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">
+            Monthly Salary
+          </label>
+          <div className="relative">
+            <DollarSign className="absolute left-2 top-1/2 -translate-y-1/2 text-blue-400 w-4 h-4 pointer-events-none" />
+            <input 
+              type="number" 
+              name="salary" 
+              value={form.salary} 
+              onChange={handleChange} 
+              placeholder="e.g., 3500000" 
+              min="0"
+              step="0.01"
+              className="w-full pl-9 pr-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all font-bold tracking-wider" 
+            />
           </div>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+            Enter monthly salary amount
+          </p>
+        </div>
         </div>
       </div>
 
