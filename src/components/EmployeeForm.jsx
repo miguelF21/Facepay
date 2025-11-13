@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { User, Loader2, Upload, X, Camera } from 'lucide-react';
+import { User, Loader2, Upload, X, Camera, DollarSign } from 'lucide-react';
 import { createEmployee } from '../services/employeeService';
 
 export default function EmployeeForm({ onSuccess }) {
@@ -12,6 +12,7 @@ export default function EmployeeForm({ onSuccess }) {
     position: '',
     department: '',
     employee_code: '',
+    salary: '',
     contact: { phone: '', email: '' },
     address: { street: '', city: '', state: '', postal_code: '' }
   });
@@ -85,6 +86,7 @@ export default function EmployeeForm({ onSuccess }) {
         position: '',
         department: '',
         employee_code: '',
+        salary: '',
         contact: { phone: '', email: '' },
         address: { street: '', city: '', state: '', postal_code: '' }
       });
@@ -271,19 +273,42 @@ export default function EmployeeForm({ onSuccess }) {
           </div>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">
-            Employee Code *
-          </label>
-          <input 
-            type="text" 
-            name="employee_code" 
-            value={form.employee_code} 
-            onChange={handleChange} 
-            placeholder="e.g., EMP001 or 815538" 
-            className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" 
-            required 
-          />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">
+              Employee Code *
+            </label>
+            <input 
+              type="text" 
+              name="employee_code" 
+              value={form.employee_code} 
+              onChange={handleChange} 
+              placeholder="e.g., EMP001 or 815538" 
+              className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" 
+              required 
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">
+              Monthly Salary
+            </label>
+            <div className="relative">
+              <DollarSign className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
+              <input 
+                type="number" 
+                name="salary" 
+                value={form.salary} 
+                onChange={handleChange} 
+                placeholder="e.g., 3500000" 
+                min="0"
+                step="0.01"
+                className="w-full pl-12 pr-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" 
+              />
+            </div>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+              Enter monthly salary amount
+            </p>
+          </div>
         </div>
       </div>
 

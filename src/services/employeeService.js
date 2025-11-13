@@ -152,6 +152,9 @@ export async function createEmployee(employee, photoFile = null) {
       }
     }
 
+    // Parse salary as decimal
+    const salary = employee.salary ? parseFloat(employee.salary) : null;
+
     // Create employee record - this is the critical operation
     const { data, error } = await supabase
       .from('employee')
@@ -163,6 +166,7 @@ export async function createEmployee(employee, photoFile = null) {
         position: employee.position,
         department: employee.department,
         employee_code: employee.employee_code,
+        salary: salary,
         contact_id: contactId,
         address_id: addressId,
         photo_url: photoUrl
@@ -220,6 +224,8 @@ export async function updateEmployee(id, updatedData, photoFile = null) {
       photoUrl = await uploadEmployeePhoto(photoFile, updatedData.employee_code || currentEmployee.employee_code);
     }
 
+    const salary = updatedData.salary ? parseFloat(updatedData.salary) : null;
+
     const { data, error } = await supabase
       .from('employee')
       .update({ 
@@ -230,6 +236,7 @@ export async function updateEmployee(id, updatedData, photoFile = null) {
         position: updatedData.position,
         department: updatedData.department,
         employee_code: updatedData.employee_code,
+        salary: salary,
         photo_url: photoUrl
       })
       .eq('id', id)
@@ -328,8 +335,12 @@ export async function getDashboardStats() {
     const { count: employeeCount } = await supabase.from('employee').select('*', { count: 'exact', head: true });
     const { data: departments } = await supabase.from('employee').select('department');
     const uniqueDepartments = [...new Set(departments?.map((d) => d.department).filter(Boolean))];
-    const { data: payrollData } = await supabase.from('payroll_record').select('net_salary');
-    const totalPayroll = payrollData?.reduce((sum, r) => sum + parseFloat(r.net_salary || 0), 0) || 0;
+    
+    // Calculate total payroll from employee salaries
+    const { data: employeeSalaries } = await supabase
+      .from('employee')
+      .select('salary');
+    const totalPayroll = employeeSalaries?.reduce((sum, emp) => sum + parseFloat(emp.salary || 0), 0) || 0;
 
     const today = new Date().toISOString().split('T')[0];
     const { count: presentToday } = await supabase
