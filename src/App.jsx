@@ -8,6 +8,7 @@ import Employees from './pages/Employees';
 import Attendance from './pages/Attendance';
 import Payroll from './pages/Payroll';
 import Reports from './pages/Reports';
+import Settings from './pages/Settings';
 import { ThemeProvider } from "@/components/theme-provider";
 import './index.css';
 import Page from './pages/Page'
@@ -17,10 +18,10 @@ function App() {
   <ThemeProvider>
     <Router>
       <Routes>
-        {/* Página pública sin Sidebar */}
+        {/* Public page without Sidebar */}
         <Route path="/" element={<LandingPage />} />
 
-        {/* Rutas protegidas con Sidebar */}
+        {/* Protected routes with Sidebar */}
         <Route
           element={
             <ProtectedRoute>
@@ -34,16 +35,15 @@ function App() {
           <Route path="/attendance" element={<Attendance />} />
           <Route path="/payroll" element={<Payroll />} />
           <Route path="/reports" element={<Reports />} />
+          <Route path="/settings" element={<Settings />} />
         </Route>
 
-        {/* Redirección por defecto */}
+        {/* Default redirect */}
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </Router>
   </ThemeProvider>
   );
-
-  
 }
 
 export default App;
