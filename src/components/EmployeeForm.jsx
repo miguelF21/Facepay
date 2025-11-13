@@ -1,276 +1,156 @@
-// EmployeeForm.jsx
-import { useState } from "react";
-import { motion } from "framer-motion";
+import { useState } from 'react';
+import { motion } from 'framer-motion';
+import { User, Loader2 } from 'lucide-react';
+import { createEmployee } from '../services/employeeService';
 
-export default function EmployeeForm({ onAdd }) {
+export default function EmployeeForm({ onSuccess }) {
   const [form, setForm] = useState({
-    name: "",
-    position: "",
-    dateOfBirth: "", // Changed from 'age' to 'dateOfBirth'
-    salary: "",
-    email: "",
-    phone: "",
-    address: "",
-    hireDate: "",
-    photo: null, // Stores File object for local upload
-    photoPreviewUrl: "", // Stores URL for preview
+    first_name: '',
+    last_name: '',
+    document_type: 'DNI',
+    document_number: '',
+    position: '',
+    department: '',
+    employee_code: '',
+    contact: { phone: '', email: '' },
+    address: { street: '', city: '', state: '', postal_code: '' }
   });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
-
-  const handlePhotoChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      // Basic validation for image type
-      if (!file.type.startsWith('image/')) {
-        alert('Please upload an image file (e.g., JPEG, PNG, GIF).');
-        setForm({ ...form, photo: null, photoPreviewUrl: "" });
-        return;
-      }
-      // Read file as Data URL for preview and storage in localStorage
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setForm({ ...form, photo: file, photoPreviewUrl: reader.result });
-      };
-      reader.readAsDataURL(file);
+    const { name, value } = e.target;
+    if (name.startsWith('contact.')) {
+      const field = name.split('.')[1];
+      setForm(prev => ({ ...prev, contact: { ...prev.contact, [field]: value } }));
+    } else if (name.startsWith('address.')) {
+      const field = name.split('.')[1];
+      setForm(prev => ({ ...prev, address: { ...prev.address, [field]: value } }));
     } else {
-      setForm({ ...form, photo: null, photoPreviewUrl: "" });
+      setForm(prev => ({ ...prev, [name]: value }));
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError(null);
 
-    // --- Validations ---
-    if (!form.name || !form.position || !form.hireDate || !form.salary || !form.dateOfBirth) {
-      alert("Please fill in all required fields (Full Name, Position, Date of Birth, Hire Date, Salary).");
+    if (!form.first_name || !form.last_name || !form.position || !form.department || !form.employee_code) {
+      setError('Please fill all required fields');
       return;
     }
 
-    // Validate Age (must be 18 or older based on dateOfBirth)
-    const today = new Date();
-    const birthDate = new Date(form.dateOfBirth);
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const m = today.getMonth() - birthDate.getMonth();
-    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-      age--;
+    setLoading(true);
+    try {
+      await createEmployee(form);
+      setForm({
+        first_name: '',
+        last_name: '',
+        document_type: 'DNI',
+        document_number: '',
+        position: '',
+        department: '',
+        employee_code: '',
+        contact: { phone: '', email: '' },
+        address: { street: '', city: '', state: '', postal_code: '' }
+      });
+      if (onSuccess) onSuccess();
+    } catch (err) {
+      console.error('Form error:', err);
+      setError('Failed to create employee. Please try again.');
+    } finally {
+      setLoading(false);
     }
-    if (age < 18) {
-      alert("Employee must be at least 18 years old.");
-      return;
-    }
-
-    // Validate Hire Date (cannot be in the future)
-    const hireDate = new Date(form.hireDate);
-    // Set both dates to start of day to compare correctly without time issues
-    today.setHours(0, 0, 0, 0);
-    hireDate.setHours(0, 0, 0, 0);
-    if (hireDate > today) {
-      alert("Hire date cannot be in the future.");
-      return;
-    }
-
-    // Add new employee with unique ID, default departure reason, and departure state
-    onAdd({
-      ...form,
-      id: Date.now(),
-      age: age, // Store calculated age for display
-      salary: parseFloat(form.salary), // Ensure salary is a number
-      photoUrl: form.photoPreviewUrl, // Use the base64 URL for storage
-      isDeparted: false, // New field: initially false
-      departureDate: null, // New field
-      reinstatementDate: null, // New field
-      timeOutside: null, // New field to store calculated time outside
-    });
-
-    // Reset form
-    setForm({
-      name: "",
-      position: "",
-      dateOfBirth: "",
-      salary: "",
-      email: "",
-      phone: "",
-      address: "",
-      hireDate: "",
-      photo: null,
-      photoPreviewUrl: "",
-    });
   };
-
-  const todayDateString = new Date().toISOString().split('T')[0]; // Get today's date for hireDate max
-  const minBirthDate = new Date();
-  minBirthDate.setFullYear(minBirthDate.getFullYear() - 18);
-  const maxBirthDateString = minBirthDate.toISOString().split('T')[0]; // Max date for 18+ years old
 
   return (
-    <motion.form
-      onSubmit={handleSubmit}
-      className="space-y-5"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-    >
-      {/* Full Name Field */}
-      <div>
-        <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-          Full Name <span className="text-red-500">*</span>
-        </label>
-        <input
-          type="text"
-          name="name"
-          id="name"
-          value={form.name}
-          onChange={handleChange}
-          placeholder="e.g., Jane Doe"
-          className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition duration-200"
-        />
+    <motion.form onSubmit={handleSubmit} className="space-y-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+      {error && (
+        <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-red-800 dark:text-red-200 text-sm">
+          {error}
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">First Name *</label>
+          <input type="text" name="first_name" value={form.first_name} onChange={handleChange} className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent" required />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Last Name *</label>
+          <input type="text" name="last_name" value={form.last_name} onChange={handleChange} className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent" required />
+        </div>
       </div>
 
-      {/* Position Field */}
-      <div>
-        <label htmlFor="position" className="block text-sm font-medium text-gray-700 mb-1">
-          Position <span className="text-red-500">*</span>
-        </label>
-        <input
-          type="text"
-          name="position"
-          id="position"
-          value={form.position}
-          onChange={handleChange}
-          placeholder="e.g., Software Engineer"
-          className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition duration-200"
-        />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Document Type</label>
+          <select name="document_type" value={form.document_type} onChange={handleChange} className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-blue-500">
+            <option value="DNI">DNI</option>
+            <option value="Passport">Passport</option>
+            <option value="License">License</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Document Number</label>
+          <input type="text" name="document_number" value={form.document_number} onChange={handleChange} className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-blue-500" />
+        </div>
       </div>
 
-      {/* Date of Birth Field */}
-      <div>
-        <label htmlFor="dateOfBirth" className="block text-sm font-medium text-gray-700 mb-1">
-          Date of Birth <span className="text-red-500">*</span>
-        </label>
-        <input
-          type="date"
-          name="dateOfBirth"
-          id="dateOfBirth"
-          value={form.dateOfBirth}
-          onChange={handleChange}
-          // Set max date for age validation (employee must be 18+)
-          max={maxBirthDateString}
-          className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition duration-200"
-        />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Position *</label>
+          <input type="text" name="position" value={form.position} onChange={handleChange} placeholder="e.g., Software Engineer" className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-blue-500" required />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Department *</label>
+          <input type="text" name="department" value={form.department} onChange={handleChange} placeholder="e.g., Engineering" className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-blue-500" required />
+        </div>
       </div>
 
-      {/* Salary Field */}
       <div>
-        <label htmlFor="salary" className="block text-sm font-medium text-gray-700 mb-1">
-          Salary <span className="text-red-500">*</span>
-        </label>
-        <input
-          type="number"
-          name="salary"
-          id="salary"
-          value={form.salary}
-          onChange={handleChange}
-          placeholder="e.g., 50000"
-          step="0.01" // Allow decimal for salary
-          min="0"
-          className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition duration-200"
-        />
+        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Employee Code *</label>
+        <input type="text" name="employee_code" value={form.employee_code} onChange={handleChange} placeholder="e.g., EMP001" className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-blue-500" required />
       </div>
 
-      {/* Email Field */}
-      <div>
-        <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-          Email
-        </label>
-        <input
-          type="email"
-          name="email"
-          id="email"
-          value={form.email}
-          onChange={handleChange}
-          placeholder="e.g., jane.doe@example.com"
-          className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition duration-200"
-        />
-      </div>
-
-      {/* Phone Field */}
-      <div>
-        <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
-          Phone
-        </label>
-        <input
-          type="tel"
-          name="phone"
-          id="phone"
-          value={form.phone}
-          onChange={handleChange}
-          placeholder="e.g., +1234567890"
-          className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition duration-200"
-        />
-      </div>
-
-      {/* Address Field */}
-      <div>
-        <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">
-          Address
-        </label>
-        <input
-          type="text"
-          name="address"
-          id="address"
-          value={form.address}
-          onChange={handleChange}
-          placeholder="e.g., 123 Main St, Anytown"
-          className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition duration-200"
-        />
-      </div>
-
-      {/* Hire Date Field */}
-      <div>
-        <label htmlFor="hireDate" className="block text-sm font-medium text-gray-700 mb-1">
-          Hire Date <span className="text-red-500">*</span>
-        </label>
-        <input
-          type="date"
-          name="hireDate"
-          id="hireDate"
-          value={form.hireDate}
-          onChange={handleChange}
-          max={todayDateString} // Max date is today
-          className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition duration-200"
-        />
-      </div>
-
-      {/* Photo Upload Field */}
-      <div>
-        <label htmlFor="photo" className="block text-sm font-medium text-gray-700 mb-1">
-          Employee Photo
-        </label>
-        <input
-          type="file"
-          name="photo"
-          id="photo"
-          accept="image/*"
-          onChange={handlePhotoChange}
-          className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition duration-200 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-        />
-        {form.photoPreviewUrl && (
-          <div className="mt-4 flex flex-col items-center">
-            <p className="text-sm text-gray-600 mb-2">Image Preview:</p>
-            <img src={form.photoPreviewUrl} alt="Employee Preview" className="w-24 h-24 object-cover rounded-full border-2 border-blue-300 shadow-md" />
+      <div className="border-t border-slate-200 dark:border-slate-700 pt-6">
+        <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-4">Contact Information</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Email</label>
+            <input type="email" name="contact.email" value={form.contact.email} onChange={handleChange} placeholder="email@example.com" className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-blue-500" />
           </div>
-        )}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Phone</label>
+            <input type="tel" name="contact.phone" value={form.contact.phone} onChange={handleChange} placeholder="+1 234 567 8900" className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-blue-500" />
+          </div>
+        </div>
       </div>
 
-      {/* Add Button */}
-      <button
-        type="submit"
-        className="w-full bg-blue-600 text-white py-2.5 px-4 rounded-md font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-200 transform hover:scale-105"
-      >
-        Add Employee
+      <div className="border-t border-slate-200 dark:border-slate-700 pt-6">
+        <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-4">Address</h3>
+        <div className="space-y-4">
+          <input type="text" name="address.street" value={form.address.street} onChange={handleChange} placeholder="Street" className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-blue-500" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <input type="text" name="address.city" value={form.address.city} onChange={handleChange} placeholder="City" className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-blue-500" />
+            <input type="text" name="address.state" value={form.address.state} onChange={handleChange} placeholder="State" className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-blue-500" />
+            <input type="text" name="address.postal_code" value={form.address.postal_code} onChange={handleChange} placeholder="ZIP" className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-blue-500" />
+          </div>
+        </div>
+      </div>
+
+      <button type="submit" disabled={loading} className="w-full py-4 bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-cyan-700 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+        {loading ? (
+          <>
+            <Loader2 className="w-5 h-5 animate-spin" />
+            Creating...
+          </>
+        ) : (
+          <>
+            <User className="w-5 h-5" />
+            Add Employee
+          </>
+        )}
       </button>
     </motion.form>
   );
