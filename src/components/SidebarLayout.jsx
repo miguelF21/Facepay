@@ -65,7 +65,11 @@ export default function SidebarLayout() {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
-                <div className="w-7 h-7 bg-white rounded-lg"></div>
+                {/* Facepay Logo Icon */}
+                <svg className="w-7 h-7 text-white" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM10 17L5 12L6.41 10.59L10 14.17L17.59 6.58L19 8L10 17Z" fill="currentColor"/>
+                  <circle cx="12" cy="12" r="3" fill="currentColor" opacity="0.3"/>
+                </svg>
               </div>
               <h2 className="text-3xl font-bold text-white tracking-tight">Face<span className="text-blue-200">pay</span></h2>
             </div>
