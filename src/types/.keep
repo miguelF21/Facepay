@@ -1,0 +1,2 @@
+import { facepayLogo } from '../utils/logo';
+// usage: <img src={facepayLogo} ... />
