@@ -11,16 +11,18 @@ import Reports from './pages/Reports';
 import Settings from './pages/Settings';
 import { ThemeProvider } from "@/components/theme-provider";
 import './index.css';
-import Page from './pages/Page'
+import Page from './pages/Page';
 import FacialLogin from './pages/FacialLogin';
+
 
 function App() {
   return (
   <ThemeProvider>
     <Router>
       <Routes>
-        {/* Public page without Sidebar */}
+        {/* Public routes */}
         <Route path="/" element={<LandingPage />} />
+        <Route path="/facial-login" element={<FacialLogin />} />
 
         {/* Protected routes with Sidebar */}
         <Route
@@ -37,7 +39,6 @@ function App() {
           <Route path="/payroll" element={<Payroll />} />
           <Route path="/reports" element={<Reports />} />
           <Route path="/settings" element={<Settings />} />
-          <Route path="/facial-login" element={<FacialLogin />} />
         </Route>
 
         {/* Default redirect */}

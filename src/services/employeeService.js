@@ -1,419 +1,411 @@
-import { supabase } from '../lib/supabaseClient';
+// src/services/employeeService.js
+import { http } from '../lib/mongoClient';
 
-// ============================================
-// EMPLOYEE IMAGE UPLOAD
-// ============================================
+// ==================== EMPLOYEES ====================
 
-export async function uploadEmployeePhoto(file, employeeCode) {
+/**
+ * Obtener todos los empleados activos
+ * Alias: getEmployees (para compatibilidad)
+ */
+export async function getAllEmployees() {
   try {
-    if (!file) return null;
-    
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${employeeCode}-${Date.now()}.${fileExt}`;
-    const filePath = `${fileName}`;
-
-    const { error: uploadError } = await supabase.storage
-      .from('employee-photos')
-      .upload(filePath, file, {
-        cacheControl: '3600',
-        upsert: true
-      });
-
-    if (uploadError) {
-      console.error('Upload error:', uploadError);
-      throw uploadError;
-    }
-
-    const { data: { publicUrl } } = supabase.storage
-      .from('employee-photos')
-      .getPublicUrl(filePath);
-
-    return publicUrl;
-  } catch (error) {
-    console.error('Error uploading photo:', error);
-    throw error;
-  }
-}
-
-export async function deleteEmployeePhoto(photoUrl) {
-  try {
-    if (!photoUrl) return;
-    
-    const path = photoUrl.split('/employee-photos/')[1];
-    if (!path) return;
-
-    await supabase.storage
-      .from('employee-photos')
-      .remove([path]);
-  } catch (error) {
-    console.error('Error deleting photo:', error);
-  }
-}
-
-// ============================================
-// EMPLOYEE CRUD OPERATIONS
-// ============================================
-
-export async function getEmployees() {
-  try {
-    const { data, error } = await supabase
-      .from('employee')
-      .select(`
-        *,
-        contact_info:contact_id(*),
-        address:address_id(*)
-      `)
-      .order('id', { ascending: true });
-    if (error) throw error;
-    return data || [];
-  } catch (error) {
-    console.error('Error fetching employees:', error);
-    throw error;
-  }
-}
-
-export async function getEmployeeById(id) {
-  try {
-    const { data, error } = await supabase
-      .from('employee')
-      .select(`
-        *,
-        contact_info:contact_id(*),
-        address:address_id(*)
-      `)
-      .eq('id', id)
-      .single();
-    if (error) throw error;
-    return data;
-  } catch (error) {
-    console.error('Error fetching employee:', error);
-    throw error;
-  }
-}
-
-export async function createEmployee(employee, photoFile = null) {
-  try {
-    let contactId = null;
-    let addressId = null;
-    let photoUrl = null;
-
-    // Create contact info if provided - make insertion optional
-    if (employee.contact && (employee.contact.phone || employee.contact.email)) {
-      try {
-        const { data: contactData, error: contactError } = await supabase
-          .from('contact_info')
-          .insert({ 
-            phone: employee.contact.phone || null, 
-            email: employee.contact.email || null 
-          })
-          .select()
-          .single();
-        
-        if (contactError) {
-          console.warn('Contact info creation failed, continuing without it:', contactError);
-        } else {
-          contactId = contactData?.id;
-        }
-      } catch (contactError) {
-        console.warn('Contact creation error, continuing without it:', contactError);
-      }
-    }
-
-    // Create address if provided - make insertion optional
-    if (employee.address && (employee.address.street || employee.address.city)) {
-      try {
-        const { data: addressData, error: addressError } = await supabase
-          .from('address')
-          .insert({ 
-            street: employee.address.street || null, 
-            city: employee.address.city || null, 
-            state: employee.address.state || null, 
-            postal_code: employee.address.postal_code || null 
-          })
-          .select()
-          .single();
-        
-        if (addressError) {
-          console.warn('Address creation failed, continuing without it:', addressError);
-        } else {
-          addressId = addressData?.id;
-        }
-      } catch (addressError) {
-        console.warn('Address creation error, continuing without it:', addressError);
-      }
-    }
-
-    // Upload photo if provided
-    if (photoFile) {
-      try {
-        photoUrl = await uploadEmployeePhoto(photoFile, employee.employee_code);
-      } catch (photoError) {
-        console.warn('Photo upload failed, continuing without it:', photoError);
-      }
-    }
-
-    // Parse salary as decimal
-    const salary = employee.salary ? parseFloat(employee.salary) : null;
-
-    // Create employee record - this is the critical operation
-    const { data, error } = await supabase
-      .from('employee')
-      .insert({ 
-        first_name: employee.first_name,
-        last_name: employee.last_name,
-        document_type: employee.document_type || 'CC',
-        document_number: employee.document_number ? parseInt(employee.document_number) : null,
-        position: employee.position,
-        department: employee.department,
-        employee_code: employee.employee_code,
-        salary: salary,
-        contact_id: contactId,
-        address_id: addressId,
-        photo_url: photoUrl
-      })
-      .select(`*, contact_info:contact_id(*), address:address_id(*)`)
-      .single();
-    
-    if (error) {
-      console.error('Employee creation error:', error);
-      throw new Error(error.message || 'Failed to create employee');
-    }
-    
-    return data;
-  } catch (error) {
-    console.error('Error creating employee:', error);
-    throw error;
-  }
-}
-
-export async function updateEmployee(id, updatedData, photoFile = null) {
-  try {
-    const currentEmployee = await getEmployeeById(id);
-    
-    if (updatedData.contact && currentEmployee.contact_id) {
-      const { error: cErr } = await supabase
-        .from('contact_info')
-        .update({ 
-          phone: updatedData.contact.phone, 
-          email: updatedData.contact.email 
-        })
-        .eq('id', currentEmployee.contact_id);
-      if (cErr) throw cErr;
-    }
-    
-    if (updatedData.address && currentEmployee.address_id) {
-      const { error: aErr } = await supabase
-        .from('address')
-        .update({ 
-          street: updatedData.address.street, 
-          city: updatedData.address.city, 
-          state: updatedData.address.state, 
-          postal_code: updatedData.address.postal_code 
-        })
-        .eq('id', currentEmployee.address_id);
-      if (aErr) throw aErr;
-    }
-
-    let photoUrl = currentEmployee.photo_url;
-    if (photoFile) {
-      // Delete old photo if exists
-      if (currentEmployee.photo_url) {
-        await deleteEmployeePhoto(currentEmployee.photo_url);
-      }
-      // Upload new photo
-      photoUrl = await uploadEmployeePhoto(photoFile, updatedData.employee_code || currentEmployee.employee_code);
-    }
-
-    const salary = updatedData.salary ? parseFloat(updatedData.salary) : null;
-
-    const { data, error } = await supabase
-      .from('employee')
-      .update({ 
-        first_name: updatedData.first_name,
-        last_name: updatedData.last_name,
-        document_type: updatedData.document_type,
-        document_number: updatedData.document_number,
-        position: updatedData.position,
-        department: updatedData.department,
-        employee_code: updatedData.employee_code,
-        salary: salary,
-        photo_url: photoUrl
-      })
-      .eq('id', id)
-      .select(`*, contact_info:contact_id(*), address:address_id(*)`)
-      .single();
-    
-    if (error) throw error;
-    return data;
-  } catch (error) {
-    console.error('Error updating employee:', error);
-    throw error;
-  }
-}
-
-export async function deleteEmployee(id) {
-  try {
-    const employee = await getEmployeeById(id);
-    
-    // Delete photo if exists
-    if (employee.photo_url) {
-      await deleteEmployeePhoto(employee.photo_url);
-    }
-    
-    await supabase.from('employee').delete().eq('id', id);
-    return true;
-  } catch (error) {
-    console.error('Error deleting employee:', error);
-    throw error;
-  }
-}
-
-// ============================================
-// ATTENDANCE OPERATIONS
-// ============================================
-
-export async function getAttendanceRecords() {
-  try {
-    const { data, error } = await supabase
-      .from('attendance_record')
-      .select(`*, employee:employee_id(id, first_name, last_name, employee_code)`)  
-      .order('date', { ascending: false });
-    if (error) throw error;
-    return data || [];
-  } catch (error) {
-    console.error('Error fetching attendance records:', error);
-    throw error;
-  }
-}
-
-export async function createAttendanceRecord(record) {
-  try {
-    const { data, error } = await supabase
-      .from('attendance_record')
-      .insert([{ 
-        employee_id: record.employee_id, 
-        date: record.date, 
-        check_in: record.check_in, 
-        check_out: record.check_out, 
-        source_terminal: record.source_terminal, 
-        status: record.status ?? true 
-      }])
-      .select()
-      .single();
-    if (error) throw error;
-    return data;
-  } catch (error) {
-    console.error('Error creating attendance record:', error);
-    throw error;
-  }
-}
-
-// ============================================
-// PAYROLL OPERATIONS
-// ============================================
-
-export async function getPayrollRecords() {
-  try {
-    const { data, error } = await supabase
-      .from('payroll_record')
-      .select(`*, employee:employee_id(id, first_name, last_name, employee_code, department)`)  
-      .order('period_start', { ascending: false });
-    if (error) throw error;
-    return data || [];
-  } catch (error) {
-    console.error('Error fetching payroll records:', error);
-    throw error;
-  }
-}
-
-// ============================================
-// DASHBOARD STATS
-// ============================================
-
-export async function getDashboardStats() {
-  try {
-    const { count: employeeCount } = await supabase.from('employee').select('*', { count: 'exact', head: true });
-    const { data: departments } = await supabase.from('employee').select('department');
-    const uniqueDepartments = [...new Set(departments?.map((d) => d.department).filter(Boolean))];
-    
-    // Calculate total payroll from employee salaries
-    const { data: employeeSalaries } = await supabase
-      .from('employee')
-      .select('salary');
-    const totalPayroll = employeeSalaries?.reduce((sum, emp) => sum + parseFloat(emp.salary || 0), 0) || 0;
-
-    const today = new Date().toISOString().split('T')[0];
-    const { count: presentToday } = await supabase
-      .from('attendance_record')
-      .select('*', { count: 'exact', head: true })
-      .eq('date', today)
-      .eq('status', true);
-
-    return {
-      totalEmployees: employeeCount || 0,
-      totalDepartments: uniqueDepartments.length || 0,
-      totalPayroll,
-      presentToday: presentToday || 0,
-      attendanceRate: employeeCount ? Math.round(((presentToday || 0) / employeeCount) * 100) : 0
+    const { data } = await http.get('/employees');
+    return { 
+      data: data?.data ?? [], 
+      error: null,
+      count: data?.count ?? 0
     };
   } catch (error) {
-    console.error('Stats error', error);
-    return { totalEmployees: 0, totalDepartments: 0, totalPayroll: 0, presentToday: 0, attendanceRate: 0 };
+    console.error('Error fetching employees:', error);
+    return { 
+      data: [], 
+      error: error.response?.data?.error || 'Error al obtener empleados' 
+    };
   }
 }
 
-// ============================================
-// SEARCH HELPERS
-// ============================================
+// Alias para compatibilidad con código existente
+export const getEmployees = getAllEmployees;
 
-export async function searchEmployees(term) {
-  const { data } = await supabase
-    .from('employee')
-    .select(`*, contact_info:contact_id(*), address:address_id(*)`)
-    .or(`first_name.ilike.%${term}%,last_name.ilike.%${term}%,employee_code.ilike.%${term}%`);
-  return data || [];
-}
-
-export async function getEmployeesByDepartment(dept) {
-  const { data } = await supabase
-    .from('employee')
-    .select(`*, contact_info:contact_id(*), address:address_id(*)`)
-    .eq('department', dept);
-  return data || [];
-}
-
-// ============================================
-// REPORTS
-// ============================================
-
-export async function getAttendanceReport(startDate, endDate) {
+/**
+ * Obtener un empleado por código
+ */
+export async function getEmployeeByCode(employeeCode) {
   try {
-    const { data, error } = await supabase
-      .from('attendance_record')
-      .select(`*, employee:employee_id(first_name, last_name, employee_code)`)
-      .gte('date', startDate)
-      .lte('date', endDate)
-      .order('date', { ascending: false });
-    if (error) throw error;
-    return data || [];
+    const { data } = await http.get(`/employees/${employeeCode}`);
+    return { 
+      data: data?.data ?? null, 
+      error: null 
+    };
+  } catch (error) {
+    console.error('Error fetching employee:', error);
+    return { 
+      data: null, 
+      error: error.response?.data?.error || 'Empleado no encontrado' 
+    };
+  }
+}
+
+/**
+ * Crear un nuevo empleado
+ */
+export async function createEmployee(employeeData) {
+  try {
+    const { data } = await http.post('/employees', employeeData);
+    return { 
+      data: data?.data ?? null, 
+      error: null 
+    };
+  } catch (error) {
+    console.error('Error creating employee:', error);
+    return { 
+      data: null, 
+      error: error.response?.data?.error || 'Error al crear empleado' 
+    };
+  }
+}
+
+/**
+ * Actualizar un empleado existente
+ */
+export async function updateEmployee(employeeCode, updates) {
+  try {
+    const { data } = await http.put(`/employees/${employeeCode}`, updates);
+    return { 
+      data: data?.data ?? null, 
+      error: null 
+    };
+  } catch (error) {
+    console.error('Error updating employee:', error);
+    return { 
+      data: null, 
+      error: error.response?.data?.error || 'Error al actualizar empleado' 
+    };
+  }
+}
+
+/**
+ * Eliminar un empleado (soft delete)
+ */
+export async function deleteEmployee(employeeCode) {
+  try {
+    const { data } = await http.delete(`/employees/${employeeCode}`);
+    return { 
+      data: data?.success ?? false, 
+      error: null 
+    };
+  } catch (error) {
+    console.error('Error deleting employee:', error);
+    return { 
+      data: false, 
+      error: error.response?.data?.error || 'Error al eliminar empleado' 
+    };
+  }
+}
+
+/**
+ * Buscar empleados por término
+ */
+export async function searchEmployees(searchTerm) {
+  try {
+    const { data } = await http.get('/employees', {
+      params: { search: searchTerm }
+    });
+    
+    // Si la API no soporta búsqueda, filtrar localmente
+    const employees = data?.data ?? [];
+    const filtered = employees.filter(emp => 
+      emp.first_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      emp.last_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      emp.employee_code?.includes(searchTerm) ||
+      emp.email?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    
+    return { 
+      data: filtered, 
+      error: null 
+    };
+  } catch (error) {
+    console.error('Error searching employees:', error);
+    return { 
+      data: [], 
+      error: error.response?.data?.error || 'Error al buscar empleados' 
+    };
+  }
+}
+
+/**
+ * Obtener empleados por departamento
+ */
+export async function getEmployeesByDepartment(department) {
+  try {
+    const { data } = await http.get('/employees', {
+      params: { department }
+    });
+    
+    // Si la API no soporta filtro, filtrar localmente
+    const employees = data?.data ?? [];
+    const filtered = employees.filter(emp => emp.department === department);
+    
+    return { 
+      data: filtered, 
+      error: null 
+    };
+  } catch (error) {
+    console.error('Error fetching employees by department:', error);
+    return { 
+      data: [], 
+      error: error.response?.data?.error || 'Error al obtener empleados' 
+    };
+  }
+}
+
+/**
+ * Subir foto de empleado
+ */
+export async function uploadPhoto(employeeCode, photoFile) {
+  try {
+    const formData = new FormData();
+    formData.append('photo', photoFile);
+
+    const response = await fetch(
+      `${import.meta.env.VITE_API_URL}/employees/${employeeCode}/photo`,
+      {
+        method: 'POST',
+        body: formData,
+      }
+    );
+
+    const data = await response.json();
+    return { 
+      data: data?.data ?? null, 
+      error: data?.success ? null : 'Error al subir foto' 
+    };
+  } catch (error) {
+    console.error('Error uploading photo:', error);
+    return { 
+      data: null, 
+      error: 'Error al subir foto' 
+    };
+  }
+}
+
+// ==================== ATTENDANCE ====================
+
+/**
+ * Obtener registros de asistencia
+ */
+export async function getAttendanceRecords(filters = {}) {
+  try {
+    const { data } = await http.get('/attendance', { params: filters });
+    return { 
+      data: data?.data ?? [], 
+      error: null,
+      count: data?.count ?? 0
+    };
+  } catch (error) {
+    console.error('Error fetching attendance:', error);
+    return { 
+      data: [], 
+      error: error.response?.data?.error || 'Error al obtener registros' 
+    };
+  }
+}
+
+/**
+ * Crear registro de asistencia
+ */
+export async function createAttendanceRecord(record) {
+  try {
+    const { data } = await http.post('/attendance', record);
+    return { 
+      data: data?.data ?? null, 
+      error: null 
+    };
+  } catch (error) {
+    console.error('Error creating attendance:', error);
+    return { 
+      data: null, 
+      error: error.response?.data?.error || 'Error al crear registro' 
+    };
+  }
+}
+
+/**
+ * Obtener reporte de asistencia
+ */
+export async function getAttendanceReport(filters = {}) {
+  try {
+    const { data } = await http.get('/attendance', { params: filters });
+    
+    // Procesar datos para el reporte
+    const records = data?.data ?? [];
+    const report = {
+      total_records: records.length,
+      complete: records.filter(r => r.status === 'complete').length,
+      incomplete: records.filter(r => r.status === 'incomplete').length,
+      records: records
+    };
+    
+    return { 
+      data: report, 
+      error: null 
+    };
   } catch (error) {
     console.error('Error fetching attendance report:', error);
-    throw error;
+    return { 
+      data: null, 
+      error: error.response?.data?.error || 'Error al obtener reporte' 
+    };
   }
 }
 
-export async function getPayrollReport(startDate, endDate) {
+// ==================== PAYROLL ====================
+
+/**
+ * Obtener registros de nómina
+ */
+export async function getPayrollRecords(filters = {}) {
   try {
-    const { data, error } = await supabase
-      .from('payroll_record')
-      .select(`*, employee:employee_id(first_name, last_name, employee_code)`)
-      .gte('period_start', startDate)
-      .lte('period_end', endDate)
-      .order('period_start', { ascending: false });
-    if (error) throw error;
-    return data || [];
+    const { data } = await http.get('/payroll', { params: filters });
+    return { 
+      data: data?.data ?? [], 
+      error: null,
+      count: data?.count ?? 0
+    };
   } catch (error) {
-    console.error('Error fetching payroll report:', error);
-    throw error;
+    console.error('Error fetching payroll:', error);
+    return { 
+      data: [], 
+      error: error.response?.data?.error || 'Error al obtener nómina' 
+    };
   }
 }
+
+/**
+ * Calcular nómina
+ */
+export async function calculatePayroll(period) {
+  try {
+    if (!period || !/^\d{4}-\d{2}$/.test(period)) {
+      return { 
+        data: null, 
+        error: 'Formato de período inválido. Use YYYY-MM' 
+      };
+    }
+
+    const { data } = await http.post('/payroll/calculate', { period });
+    return { 
+      data: data?.data ?? [], 
+      error: null,
+      message: data?.message || 'Nómina calculada exitosamente'
+    };
+  } catch (error) {
+    console.error('Error calculating payroll:', error);
+    return { 
+      data: null, 
+      error: error.response?.data?.error || 'Error al calcular nómina' 
+    };
+  }
+}
+
+/**
+ * Obtener reporte de nómina
+ */
+export async function getPayrollReport(filters = {}) {
+  try {
+    const { data } = await http.get('/payroll', { params: filters });
+    
+    // Procesar datos para el reporte
+    const records = data?.data ?? [];
+    const report = {
+      total_records: records.length,
+      total_gross: records.reduce((sum, r) => sum + (r.gross_salary || 0), 0),
+      total_deductions: records.reduce((sum, r) => sum + (r.total_deductions || 0), 0),
+      total_net: records.reduce((sum, r) => sum + (r.net_salary || 0), 0),
+      records: records
+    };
+    
+    return { 
+      data: report, 
+      error: null 
+    };
+  } catch (error) {
+    console.error('Error fetching payroll report:', error);
+    return { 
+      data: null, 
+      error: error.response?.data?.error || 'Error al obtener reporte' 
+    };
+  }
+}
+
+// ==================== DASHBOARD ====================
+
+/**
+ * Obtener estadísticas del dashboard
+ */
+export async function getDashboardStats() {
+  try {
+    const { data } = await http.get('/dashboard/stats');
+    return { 
+      data: data?.data ?? null, 
+      error: null 
+    };
+  } catch (error) {
+    console.error('Error fetching dashboard stats:', error);
+    
+    // Fallback: calcular estadísticas manualmente
+    try {
+      const employees = await getAllEmployees();
+      const today = new Date().toISOString().split('T')[0];
+      const attendance = await getAttendanceRecords({ 
+        date_from: today, 
+        date_to: today 
+      });
+      
+      const stats = {
+        total_employees: employees.data?.length ?? 0,
+        today_attendance: attendance.data?.length ?? 0,
+        present_now: attendance.data?.filter(r => r.check_in && !r.check_out).length ?? 0,
+        absent_today: (employees.data?.length ?? 0) - (attendance.data?.length ?? 0)
+      };
+      
+      return { data: stats, error: null };
+    } catch (fallbackError) {
+      return { 
+        data: null, 
+        error: 'Error al obtener estadísticas' 
+      };
+    }
+  }
+}
+
+// ==================== EXPORT DEFAULT ====================
+
+export const employeeService = {
+  // Employees
+  getAllEmployees,
+  getEmployees,
+  getEmployeeByCode,
+  createEmployee,
+  updateEmployee,
+  deleteEmployee,
+  searchEmployees,
+  getEmployeesByDepartment,
+  uploadPhoto,
+  
+  // Attendance
+  getAttendanceRecords,
+  createAttendanceRecord,
+  getAttendanceReport,
+  
+  // Payroll
+  getPayrollRecords,
+  calculatePayroll,
+  getPayrollReport,
+  
+  // Dashboard
+  getDashboardStats
+};
+
+export default employeeService;
