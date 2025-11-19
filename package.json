@@ -31,7 +31,7 @@
     "react-dom": "^19.0.0",
     "react-icons": "^5.5.0",
     "react-router-dom": "^7.6.1",
-    "recharts": "^2.15.3",
+    "recharts": "^2.15.4",
     "socket.io-client": "^4.7.2",
     "styled-component": "^2.8.0",
     "tailwind-merge": "^3.3.0",

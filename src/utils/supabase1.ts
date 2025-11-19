@@ -1,8 +1,6 @@
-import { createClient } from '@supabase/supabase-js';
+// TEMPORAL: Supabase deshabilitado para migración a MongoDB
+// Para reactivar, descomentar el código original
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+export const supabase = null;
 
-const supabase = createClient(supabaseUrl, supabaseKey);
-
-export default supabase
+console.log('Supabase utils deshabilitado - Usando MongoDB API');

@@ -404,16 +404,24 @@ function EmployeeModal({ employee, onClose, onSave }) {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Salary</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Salary
+            </label>
+            <div className="relative">
               <input
-                type="number"
-                min="0"
-                step="0.01"
-                value={formData.salary}
-                onChange={(e) => handleChange('salary', e.target.value)}
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                placeholder="0"
+                value={formData.salary || ''}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/[^0-9]/g, '');
+                  handleChange('salary', value);
+                }}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
               />
             </div>
+          </div>
           </div>
           <div className="flex gap-4 pt-4">
             <button
